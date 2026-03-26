@@ -1,53 +1,94 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+import type { ServiceStatus } from '@/types';
 
+// Design-system palette for the VehicleTracker MVP (indonesian motorcycle maintenance).
+export const brand = '#6366F1'; // Indigo
+export const brandLight = '#EEF2FF';
+
+export const safe = '#22C55E';
+export const safeLight = '#DCFCE7';
+export const safeDark = '#166534';
+
+export const soon = '#EAB308';
+export const soonLight = '#FEF9C3';
+export const soonDark = '#713F12';
+
+export const overdue = '#EF4444';
+export const overdueLight = '#FEE2E2';
+export const overdueDark = '#7F1D1D';
+
+export const text = '#0F172A';
+export const muted = '#64748B';
+export const border = '#E2E8F0';
+export const bg = '#F8F9FC';
+export const card = '#FFFFFF';
+
+export const cardGradients: Record<ServiceStatus, [string, string]> = {
+  safe: [safeDark, safe],
+  soon: [soonDark, soon],
+  overdue: [overdueDark, overdue],
+};
+
+export const borderRadius = {
+  card: 14,
+  button: 12,
+  input: 10,
+  badge: 20,
+} as const;
+
+export const Typography = {
+  boldWeight: '600',
+  // Mono font family differs by platform.
+  mono: Platform.select({
+    ios: 'Menlo',
+    android: 'monospace',
+    default: 'monospace',
+    web: 'monospace',
+  }),
+} as const;
+
+/**
+ * Template compatibility: `useThemeColor` expects `Colors.light`/`Colors.dark` with
+ * `text`, `background`, and `tint` keys.
+ */
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    text,
+    background: bg,
+    tint: brand,
+    icon: muted,
+    tabIconDefault: muted,
+    tabIconSelected: brand,
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    text: '#F8FAFC',
+    background: '#0F172A',
+    tint: brand,
+    icon: muted,
+    tabIconDefault: muted,
+    tabIconSelected: brandLight,
   },
 };
 
+// Keep original `Fonts` export so existing template screens don't break.
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
+    serif: 'system-ui',
+    rounded: 'system-ui',
+    mono: Typography.mono,
   },
   default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
+    sans: 'system-ui',
+    serif: 'system-ui',
+    rounded: 'system-ui',
+    mono: Typography.mono,
   },
   web: {
     sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+    serif: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    rounded: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    mono: "Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });
