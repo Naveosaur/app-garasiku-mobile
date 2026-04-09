@@ -1,12 +1,11 @@
 import * as Haptics from 'expo-haptics';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View, useColorScheme } from 'react-native';
 
-import { brand, borderRadius, overdue } from '@/constants/theme';
+import { borderRadius, overdue, useAppTheme } from '@/constants/theme';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
 import { useVehicleStore } from '@/store/vehicleStore';
 import type { MaintenanceType } from '@/types';
@@ -51,6 +50,9 @@ function typeCardColor(type: MaintenanceType) {
 
 export default function AddMaintenanceModalScreen() {
   const router = useRouter();
+  const t = useAppTheme();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const params = useLocalSearchParams<{ vehicleId?: string }>();
 
   const vehicleIdParam = params.vehicleId;
@@ -106,14 +108,14 @@ export default function AddMaintenanceModalScreen() {
 
   if (!vehicleId || !vehicle) {
     return (
-      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16 }}>
-        <Text style={{ fontWeight: '900', marginBottom: 12 }}>Vehicle not found</Text>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, backgroundColor: t.bg }}>
+        <Text style={{ fontWeight: '900', marginBottom: 12, color: t.text }}>Vehicle not found</Text>
         <Pressable
           onPress={() => router.back()}
           style={{
             height: 44,
             borderRadius: borderRadius.button,
-            backgroundColor: brand,
+            backgroundColor: t.brand,
             alignItems: 'center',
             justifyContent: 'center',
             paddingHorizontal: 18,
@@ -125,82 +127,86 @@ export default function AddMaintenanceModalScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, paddingBottom: 28 }}>
-      <LinearGradient
-        colors={[brand, '#7C3AED']}
+    <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, paddingBottom: 28, backgroundColor: t.bg }}>
+      <View
         style={{
           borderRadius: 16,
           padding: 14,
           marginBottom: 14,
+          backgroundColor: t.surface,
+          borderWidth: 1,
+          borderColor: t.border,
         }}>
-        <Text style={{ color: 'white', fontSize: 18, fontWeight: '900' }}>Add Maintenance</Text>
-        <Text style={{ color: 'rgba(255,255,255,0.85)', marginTop: 6 }}>
+        <Text style={{ color: t.text, fontSize: 18, fontWeight: '900' }}>Add Maintenance</Text>
+        <Text style={{ color: t.textMuted, marginTop: 6 }}>
           {vehicle.name} • {vehicle.plate}
         </Text>
-      </LinearGradient>
+      </View>
 
-      <Text style={{ fontWeight: '900', marginBottom: 10 }}>Service Type</Text>
+      <Text style={{ fontWeight: '900', marginBottom: 10, color: t.text }}>Service Type</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
-        {MAINTENANCE_TYPES.map((t) => {
-          const active = selectedType === t;
+        {MAINTENANCE_TYPES.map((type) => {
+          const active = selectedType === type;
           return (
             <Pressable
-              key={t}
-              onPress={() => setSelectedType(t)}
+              key={type}
+              onPress={() => setSelectedType(type)}
               style={{
                 width: '47%',
                 borderRadius: borderRadius.card,
                 padding: 14,
                 minHeight: 92,
                 borderWidth: 1,
-                borderColor: active ? brand : '#E2E8F0',
-                backgroundColor: active ? `${brand}22` : typeCardColor(t),
+                borderColor: active ? t.brand : t.border,
+                backgroundColor: active ? t.brandMuted : typeCardColor(type),
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-              <MaterialIcons name={typeIcon(t) as any} size={22} color={active ? brand : '#64748B'} />
-              <Text style={{ fontWeight: '900', marginTop: 8, textAlign: 'center' }}>{typeLabel(t)}</Text>
+              <MaterialIcons name={typeIcon(type) as any} size={22} color={active ? t.brand : t.textMuted} />
+              <Text style={{ fontWeight: '900', marginTop: 8, textAlign: 'center', color: t.text }}>{typeLabel(type)}</Text>
             </Pressable>
           );
         })}
       </View>
 
-      <Text style={{ fontWeight: '900', marginBottom: 6 }}>KM at Service</Text>
+      <Text style={{ fontWeight: '900', marginBottom: 6, color: t.text }}>KM at Service</Text>
       <TextInput
         value={String(serviceKM)}
-        onChangeText={(t) => {
-          const parsed = Number(t.replace(/[^0-9]/g, ''));
+        onChangeText={(v) => {
+          const parsed = Number(v.replace(/[^0-9]/g, ''));
           setServiceKM(Number.isFinite(parsed) ? parsed : 0);
         }}
         keyboardType="numeric"
+        placeholderTextColor={t.textSubtle}
         style={{
           height: 44,
           borderRadius: borderRadius.input,
           borderWidth: 1,
-          borderColor: '#E2E8F0',
+          borderColor: t.inputBorder,
           paddingHorizontal: 12,
           marginBottom: 14,
-          backgroundColor: 'white',
+          backgroundColor: t.inputBg,
+          color: t.text,
         }}
       />
 
-      <Text style={{ fontWeight: '900', marginBottom: 6 }}>Date</Text>
+      <Text style={{ fontWeight: '900', marginBottom: 6, color: t.text }}>Date</Text>
       <Pressable
         onPress={() => setShowDatePicker(true)}
         style={{
           height: 44,
           borderRadius: borderRadius.input,
           borderWidth: 1,
-          borderColor: '#E2E8F0',
+          borderColor: t.inputBorder,
           paddingHorizontal: 12,
           marginBottom: 14,
-          backgroundColor: 'white',
+          backgroundColor: t.inputBg,
           alignItems: 'center',
           flexDirection: 'row',
           justifyContent: 'space-between',
         }}>
-        <Text style={{ fontWeight: '800' }}>{serviceDate.toLocaleDateString()}</Text>
-        <MaterialIcons name="calendar-today" size={18} color={brand} />
+        <Text style={{ fontWeight: '800', color: t.text }}>{serviceDate.toLocaleDateString()}</Text>
+        <MaterialIcons name="calendar-today" size={18} color={t.brand} />
       </Pressable>
 
       {showDatePicker ? (
@@ -215,21 +221,23 @@ export default function AddMaintenanceModalScreen() {
         />
       ) : null}
 
-      <Text style={{ fontWeight: '900', marginBottom: 6, marginTop: 8 }}>Notes (optional)</Text>
+      <Text style={{ fontWeight: '900', marginBottom: 6, marginTop: 8, color: t.text }}>Notes (optional)</Text>
       <TextInput
         value={notes}
         onChangeText={setNotes}
         placeholder="e.g. Changed oil and filter"
+        placeholderTextColor={t.textSubtle}
         multiline
         numberOfLines={4}
         style={{
           borderRadius: borderRadius.input,
           borderWidth: 1,
-          borderColor: '#E2E8F0',
+          borderColor: t.inputBorder,
           paddingHorizontal: 12,
           paddingVertical: 10,
           marginBottom: 14,
-          backgroundColor: 'white',
+          backgroundColor: t.inputBg,
+          color: t.text,
           minHeight: 92,
         }}
       />
@@ -241,7 +249,7 @@ export default function AddMaintenanceModalScreen() {
         style={{
           height: 48,
           borderRadius: borderRadius.button,
-          backgroundColor: brand,
+          backgroundColor: t.brand,
           alignItems: 'center',
           justifyContent: 'center',
           opacity: selectedType ? 1 : 0.9,

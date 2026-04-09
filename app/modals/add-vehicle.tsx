@@ -1,11 +1,10 @@
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View, useColorScheme } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
-import { brand, borderRadius, overdue } from '@/constants/theme';
+import { borderRadius, overdue, useAppTheme } from '@/constants/theme';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
 import { useVehicleStore } from '@/store/vehicleStore';
 import type { VehicleType } from '@/types';
@@ -14,6 +13,10 @@ import { cancelAllRemindersForVehicle, scheduleMaintenanceReminder } from '@/uti
 
 export default function AddVehicleModalScreen() {
   const router = useRouter();
+  const t = useAppTheme();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   const addVehicle = useVehicleStore((s) => s.addVehicle);
   const records = useMaintenanceStore((s) => s.records);
 
@@ -67,21 +70,23 @@ export default function AddVehicleModalScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, paddingBottom: 28 }}>
-      <LinearGradient
-        colors={[brand, '#7C3AED']}
+    <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, paddingBottom: 28, backgroundColor: t.bg }}>
+      <View
         style={{
           borderRadius: 16,
           padding: 14,
           marginBottom: 14,
+          backgroundColor: t.surface,
+          borderWidth: 1,
+          borderColor: t.border,
         }}>
-        <Text style={{ color: 'white', fontSize: 18, fontWeight: '900' }}>Add Vehicle</Text>
-        <Text style={{ color: 'rgba(255,255,255,0.85)', marginTop: 6 }}>
+        <Text style={{ color: t.text, fontSize: 18, fontWeight: '900' }}>Add Vehicle</Text>
+        <Text style={{ color: t.textMuted, marginTop: 6 }}>
           Track KM and never miss a service again.
         </Text>
-      </LinearGradient>
+      </View>
 
-      <Text style={{ fontWeight: '900', marginBottom: 10 }}>Vehicle Type</Text>
+      <Text style={{ fontWeight: '900', marginBottom: 10, color: t.text }}>Vehicle Type</Text>
 
       <View style={{ flexDirection: 'row', gap: 12, marginBottom: 14 }}>
         <Pressable
@@ -92,13 +97,13 @@ export default function AddVehicleModalScreen() {
             padding: 14,
             minHeight: 92,
             borderWidth: 1,
-            borderColor: vehicleType === 'motorcycle' ? brand : '#E2E8F0',
-            backgroundColor: vehicleType === 'motorcycle' ? `${brand}22` : 'white',
+            borderColor: vehicleType === 'motorcycle' ? t.brand : t.border,
+            backgroundColor: vehicleType === 'motorcycle' ? t.brandMuted : t.surface,
             alignItems: 'center',
             justifyContent: 'center',
           }}>
           <Text style={{ fontSize: 28 }}>🏍️</Text>
-          <Text style={{ fontWeight: '900', marginTop: 6 }}>Motorcycle</Text>
+          <Text style={{ fontWeight: '900', marginTop: 6, color: t.text }}>Motorcycle</Text>
         </Pressable>
         <Pressable
           onPress={() => setVehicleType('car')}
@@ -108,8 +113,8 @@ export default function AddVehicleModalScreen() {
             padding: 14,
             minHeight: 92,
             borderWidth: 1,
-            borderColor: vehicleType === 'car' ? brand : '#E2E8F0',
-            backgroundColor: vehicleType === 'car' ? `${brand}22` : 'white',
+            borderColor: vehicleType === 'car' ? t.brand : t.border,
+            backgroundColor: vehicleType === 'car' ? t.brandMuted : t.surface,
             alignItems: 'center',
             justifyContent: 'center',
           }}>
@@ -198,7 +203,7 @@ export default function AddVehicleModalScreen() {
         style={{
           height: 48,
           borderRadius: borderRadius.button,
-          backgroundColor: brand,
+          backgroundColor: t.brand,
           alignItems: 'center',
           justifyContent: 'center',
           opacity: brandModel.trim() && plate.trim() && currentKM > 0 ? 1 : 0.9,

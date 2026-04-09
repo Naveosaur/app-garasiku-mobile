@@ -1,9 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View, useColorScheme } from 'react-native';
 
-import { brand, borderRadius } from '@/constants/theme';
+import { borderRadius, useAppTheme } from '@/constants/theme';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
 import { useVehicleStore } from '@/store/vehicleStore';
 import type { MaintenanceType } from '@/types';
@@ -35,6 +35,10 @@ function formatMonth(ts: number) {
 
 export default function VehicleHistoryScreen() {
   const router = useRouter();
+  const t = useAppTheme();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   const params = useLocalSearchParams<{ id?: string }>();
   const idParam = params.id;
   const vehicleId = Array.isArray(idParam) ? idParam[0] : idParam;
@@ -73,14 +77,14 @@ export default function VehicleHistoryScreen() {
 
   if (!vehicle) {
     return (
-      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, justifyContent: 'center' }}>
-        <Text style={{ fontWeight: '900', marginBottom: 12 }}>Vehicle not found</Text>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, justifyContent: 'center', backgroundColor: t.bg }}>
+        <Text style={{ fontWeight: '900', marginBottom: 12, color: t.text }}>Vehicle not found</Text>
         <Pressable
           onPress={() => router.back()}
           style={{
             height: 44,
             borderRadius: borderRadius.button,
-            backgroundColor: brand,
+            backgroundColor: t.brand,
             alignItems: 'center',
             justifyContent: 'center',
             paddingHorizontal: 18,
@@ -92,13 +96,13 @@ export default function VehicleHistoryScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 140 }}>
+    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 140, backgroundColor: t.bg }}>
       <View style={{ marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text style={{ fontSize: 18, fontWeight: '900' }}>Maintenance History</Text>
+        <Text style={{ fontSize: 18, fontWeight: '900', color: t.text }}>Maintenance History</Text>
         <Pressable
           onPress={() => router.back()}
-          style={{ height: 40, width: 40, borderRadius: 14, backgroundColor: '#EEF2FF', alignItems: 'center', justifyContent: 'center' }}>
-          <MaterialIcons name="arrow-back" size={20} color={brand} />
+          style={{ height: 40, width: 40, borderRadius: 14, backgroundColor: t.bgSecondary, alignItems: 'center', justifyContent: 'center' }}>
+          <MaterialIcons name="arrow-back" size={20} color={t.text} />
         </Pressable>
       </View>
 
@@ -130,7 +134,7 @@ export default function VehicleHistoryScreen() {
             style={{
               height: 44,
               borderRadius: borderRadius.button,
-              backgroundColor: brand,
+              backgroundColor: t.brand,
               alignItems: 'center',
               justifyContent: 'center',
               marginTop: 12,
@@ -150,19 +154,19 @@ export default function VehicleHistoryScreen() {
                   return (
                     <View key={r.id} style={{ flexDirection: 'row', gap: 12 }}>
                       <View style={{ width: 22, alignItems: 'center' }}>
-                        <View style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: brand, marginTop: 6 }} />
-                        {!isLast ? <View style={{ width: 2, flex: 1, backgroundColor: '#E2E8F0', marginTop: 6 }} /> : null}
+                        <View style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: t.brand, marginTop: 6 }} />
+                        {!isLast ? <View style={{ width: 2, flex: 1, backgroundColor: t.border, marginTop: 6 }} /> : null}
                       </View>
                       <View style={{ flex: 1, paddingVertical: 8 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                          <MaterialIcons name={typeIcon(r.type) as any} size={18} color={brand} />
-                          <Text style={{ fontWeight: '900' }}>{typeLabel(r.type)}</Text>
+                          <MaterialIcons name={typeIcon(r.type) as any} size={18} color={t.brand} />
+                          <Text style={{ fontWeight: '900', color: t.text }}>{typeLabel(r.type)}</Text>
                         </View>
-                        <Text style={{ color: '#64748B', fontSize: 12, marginTop: 6 }}>
+                        <Text style={{ color: t.textMuted, fontSize: 12, marginTop: 6 }}>
                           {r.serviceKM.toLocaleString()} km • {new Date(r.date).toLocaleDateString()}
                         </Text>
                         {r.notes ? (
-                          <Text style={{ color: '#64748B', fontSize: 12, marginTop: 6 }}>{r.notes}</Text>
+                          <Text style={{ color: t.textMuted, fontSize: 12, marginTop: 6 }}>{r.notes}</Text>
                         ) : null}
                       </View>
                     </View>
