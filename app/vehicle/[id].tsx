@@ -1,11 +1,11 @@
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useColorScheme } from 'react-native';
 import React from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
-import { cardGradients, borderRadius, brand, overdue, safe, soon } from '@/constants/theme';
+import { borderRadius, overdue, safe, soon, useAppTheme, cardShadowStyle } from '@/constants/theme';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
 import { useVehicleStore } from '@/store/vehicleStore';
 import type { MaintenanceStatus } from '@/types';
@@ -15,6 +15,10 @@ import { cancelAllRemindersForVehicle, scheduleMaintenanceReminder } from '@/uti
 
 export default function VehicleDetailScreen() {
   const router = useRouter();
+  const t = useAppTheme();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   const params = useLocalSearchParams<{ id?: string }>();
   const idParam = params.id;
   const vehicleId = Array.isArray(idParam) ? idParam[0] : idParam;
@@ -97,22 +101,22 @@ export default function VehicleDetailScreen() {
 
   if (!hydratedVehicles || !hydratedMaintenance) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text>Loading...</Text>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg }}>
+        <Text style={{ color: t.text }}>Loading...</Text>
       </View>
     );
   }
 
   if (!vehicle) {
     return (
-      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
-        <Text style={{ fontWeight: '800', marginBottom: 10 }}>Vehicle not found</Text>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24, backgroundColor: t.bg }}>
+        <Text style={{ fontWeight: '800', marginBottom: 10, color: t.text }}>Vehicle not found</Text>
         <Pressable
           onPress={() => router.back()}
           style={{
             height: 44,
             borderRadius: borderRadius.button,
-            backgroundColor: brand,
+            backgroundColor: t.brand,
             alignItems: 'center',
             justifyContent: 'center',
             paddingHorizontal: 18,
@@ -136,14 +140,17 @@ export default function VehicleDetailScreen() {
   const recentRecords = records.slice(0, 3);
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 140 }}>
-      <LinearGradient
-        colors={cardGradients[worstStatus]}
+    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 140, backgroundColor: t.bg }}>
+      <View
         style={{
           borderRadius: 16,
           padding: 14,
           overflow: 'hidden',
           marginBottom: 14,
+          backgroundColor: t.surface,
+          borderWidth: 1,
+          borderColor: t.border,
+          ...cardShadowStyle(isDark),
         }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <Pressable
@@ -155,9 +162,9 @@ export default function VehicleDetailScreen() {
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: 12,
-              backgroundColor: 'rgba(255,255,255,0.16)',
+              backgroundColor: t.bgSecondary,
             }}>
-            <MaterialIcons name="arrow-back" size={22} color="white" />
+            <MaterialIcons name="arrow-back" size={22} color={t.text} />
           </Pressable>
 
           <View
@@ -174,31 +181,31 @@ export default function VehicleDetailScreen() {
           </View>
         </View>
 
-        <Text style={{ color: 'white', fontSize: 20, fontWeight: '900', marginTop: 10 }}>{vehicle.name}</Text>
-        <Text style={{ color: 'rgba(255,255,255,0.85)', marginTop: 4 }}>{vehicle.plate}</Text>
+        <Text style={{ color: t.text, fontSize: 20, fontWeight: '900', marginTop: 10 }}>{vehicle.name}</Text>
+        <Text style={{ color: t.textMuted, marginTop: 4 }}>{vehicle.plate}</Text>
 
         <View style={{ marginTop: 14, gap: 10 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <View>
-              <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 12 }}>Current</Text>
-              <Text style={{ color: 'white', fontWeight: '900' }}>{vehicle.currentKM.toLocaleString()} km</Text>
+              <Text style={{ color: t.textMuted, fontSize: 12 }}>Current</Text>
+              <Text style={{ color: t.text, fontWeight: '900' }}>{vehicle.currentKM.toLocaleString()} km</Text>
             </View>
             <View>
-              <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 12 }}>Next Oil</Text>
-              <Text style={{ color: 'white', fontWeight: '900' }}>
+              <Text style={{ color: t.textMuted, fontSize: 12 }}>Next Oil</Text>
+              <Text style={{ color: t.text, fontWeight: '900' }}>
                 {(oilStatus?.nextServiceKM ?? 0).toLocaleString()} km
               </Text>
             </View>
             <View>
-              <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 12 }}>KM Left</Text>
-              <Text style={{ color: 'white', fontWeight: '900' }}>
+              <Text style={{ color: t.textMuted, fontSize: 12 }}>KM Left</Text>
+              <Text style={{ color: t.text, fontWeight: '900' }}>
                 {Math.max(0, kmLeft).toLocaleString()} km
               </Text>
             </View>
           </View>
 
           <View>
-            <Text style={{ color: 'white', fontSize: 12, opacity: 0.9, marginBottom: 8 }}>Update KM</Text>
+            <Text style={{ color: t.text, fontSize: 12, marginBottom: 8 }}>Update KM</Text>
             <TextInput
               value={String(kmDraft)}
               onChangeText={(t) => {
@@ -206,30 +213,31 @@ export default function VehicleDetailScreen() {
                 setKmDraft(Number.isFinite(parsed) ? parsed : 0);
               }}
               keyboardType="numeric"
+              placeholderTextColor={t.textSubtle}
               style={{
                 height: 44,
                 borderRadius: borderRadius.input,
                 borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.25)',
+                borderColor: t.inputBorder,
                 paddingHorizontal: 12,
-                backgroundColor: 'rgba(255,255,255,0.12)',
-                color: 'white',
+                backgroundColor: t.inputBg,
+                color: t.text,
               }}
             />
-            <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, marginTop: 6 }}>
+            <Text style={{ color: t.textMuted, fontSize: 12, marginTop: 6 }}>
               Saved automatically after 800ms
             </Text>
           </View>
         </View>
-      </LinearGradient>
+      </View>
 
       <View style={{ marginTop: 16 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ fontSize: 16, fontWeight: '900' }}>Maintenance Status</Text>
+          <Text style={{ fontSize: 16, fontWeight: '900', color: t.text }}>Maintenance Status</Text>
           <Pressable
             onPress={() => router.push(`/modals/add-maintenance?vehicleId=${encodeURIComponent(vehicle.id)}`)}
             style={{ paddingVertical: 8, paddingHorizontal: 10 }}>
-            <Text style={{ color: brand, fontWeight: '900' }}>+ Add Record</Text>
+            <Text style={{ color: t.brand, fontWeight: '900' }}>+ Add Record</Text>
           </Pressable>
         </View>
 
@@ -242,18 +250,18 @@ export default function VehicleDetailScreen() {
 
       <View style={{ marginTop: 18 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ fontSize: 16, fontWeight: '900' }}>Recent History</Text>
+          <Text style={{ fontSize: 16, fontWeight: '900', color: t.text }}>Recent History</Text>
           <Pressable
             onPress={() => router.push(`/vehicle/${vehicle.id}/history`)}
             style={{ paddingVertical: 8, paddingHorizontal: 10 }}>
-            <Text style={{ color: brand, fontWeight: '900' }}>View Full History</Text>
+            <Text style={{ color: t.brand, fontWeight: '900' }}>View Full History</Text>
           </Pressable>
         </View>
 
         {recentRecords.length === 0 ? (
-          <View style={{ padding: 14, borderRadius: borderRadius.card, borderWidth: 1, borderColor: '#E2E8F0', backgroundColor: 'white', marginTop: 10 }}>
-            <Text style={{ fontWeight: '900', marginBottom: 6 }}>No records yet</Text>
-            <Text style={{ color: '#64748B', fontSize: 12, marginBottom: 12 }}>
+          <View style={{ padding: 14, borderRadius: borderRadius.card, borderWidth: 1, borderColor: t.border, backgroundColor: t.surface, marginTop: 10, ...cardShadowStyle(isDark) }}>
+            <Text style={{ fontWeight: '900', marginBottom: 6, color: t.text }}>No records yet</Text>
+            <Text style={{ color: t.textMuted, fontSize: 12, marginBottom: 12 }}>
               Log your first service.
             </Text>
             <Pressable
@@ -261,7 +269,7 @@ export default function VehicleDetailScreen() {
               style={{
                 height: 44,
                 borderRadius: borderRadius.button,
-                backgroundColor: brand,
+                backgroundColor: t.brand,
                 alignItems: 'center',
                 justifyContent: 'center',
                 paddingHorizontal: 18,
@@ -278,15 +286,16 @@ export default function VehicleDetailScreen() {
                   padding: 14,
                   borderRadius: borderRadius.card,
                   borderWidth: 1,
-                  borderColor: '#E2E8F0',
-                  backgroundColor: 'white',
+                  borderColor: t.border,
+                  backgroundColor: t.surface,
+                  ...cardShadowStyle(isDark),
                 }}>
-                <Text style={{ fontWeight: '900' }}>{r.type.replace(/_/g, ' ')}</Text>
-                <Text style={{ color: '#64748B', fontSize: 12, marginTop: 6 }}>
+                <Text style={{ fontWeight: '900', color: t.text }}>{r.type.replace(/_/g, ' ')}</Text>
+                <Text style={{ color: t.textMuted, fontSize: 12, marginTop: 6 }}>
                   {r.serviceKM.toLocaleString()} km • {new Date(r.date).toLocaleDateString()}
                 </Text>
                 {r.notes ? (
-                  <Text style={{ color: '#64748B', fontSize: 12, marginTop: 6 }}>{r.notes}</Text>
+                  <Text style={{ color: t.textMuted, fontSize: 12, marginTop: 6 }}>{r.notes}</Text>
                 ) : null}
               </View>
             ))}

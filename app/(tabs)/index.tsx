@@ -1,11 +1,10 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import React from 'react';
-import { FlatList, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, Text, TextInput, View, useColorScheme } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { brand, borderRadius } from '@/constants/theme';
+import { borderRadius, useAppTheme, overdue, soon } from '@/constants/theme';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
 import { useAuthStore } from '@/store/authStore';
 import { useVehicleStore } from '@/store/vehicleStore';
@@ -16,6 +15,8 @@ import VehicleCard from '@/components/VehicleCard';
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const t = useAppTheme();
+  const colorScheme = useColorScheme();
 
   const userName = useAuthStore((s) => s.user?.name ?? '');
   const vehicles = useVehicleStore((s) => s.vehicles);
@@ -169,34 +170,27 @@ export default function DashboardScreen() {
   const showVerticalList = vehicles.length <= 2;
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 140 }}>
-      <LinearGradient
-        colors={['#4F46E5', '#6366F1']}
-        style={{
-          borderRadius: 16,
-          padding: 14,
-          marginBottom: 14,
-          overflow: 'hidden',
-        }}>
+    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 140, backgroundColor: t.bg }}>
+      <View style={{ marginBottom: 14 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: 'white', fontSize: 14, fontWeight: '600' }}>
+            <Text style={{ color: t.text, fontSize: 18, fontWeight: '700' }}>
               {greeting}, {userName || 'there'}
             </Text>
-            <Text style={{ color: 'white', fontSize: 12, opacity: 0.9, marginTop: 4 }}>
-              Keep your bike maintenance on track.
+            <Text style={{ color: t.textMuted, fontSize: 14, marginTop: 4 }}>
+              Keep your motorcycle maintenance on track.
             </Text>
           </View>
           <Pressable
             onPress={() => router.push('/reminders')}
             accessibilityRole="button"
             style={{ width: 42, height: 42, alignItems: 'center', justifyContent: 'center' }}>
-            <MaterialIcons name="notifications" size={20} color="white" />
+            <MaterialIcons name="notifications" size={20} color={t.text} />
           </Pressable>
         </View>
-      </LinearGradient>
+      </View>
 
-      <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 10 }}>Your Vehicles</Text>
+      <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 10, color: t.text }}>Your Vehicles</Text>
 
       <FlatList
         data={vehicles}
@@ -211,20 +205,20 @@ export default function DashboardScreen() {
       />
 
       <View style={{ marginTop: 18 }}>
-        <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 10 }}>Quick KM Update</Text>
+        <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 10, color: t.text }}>Quick KM Update</Text>
         {targetVehicle ? (
           <View
             style={{
               borderWidth: 1,
-              borderColor: '#E2E8F0',
+              borderColor: t.border,
               borderRadius: borderRadius.card,
               padding: 14,
-              backgroundColor: 'white',
+              backgroundColor: t.surface,
             }}>
-            <Text style={{ fontSize: 14, fontWeight: '700', marginBottom: 6 }}>
+            <Text style={{ fontSize: 14, fontWeight: '700', marginBottom: 6, color: t.text }}>
               {targetVehicle.name}
             </Text>
-            <Text style={{ color: '#64748B', marginBottom: 6 }}>
+            <Text style={{ color: t.textMuted, marginBottom: 6 }}>
               Current KM: {targetVehicle.currentKM.toLocaleString()}
             </Text>
             <TextInput
@@ -234,16 +228,18 @@ export default function DashboardScreen() {
                 setKmDraft(Number.isFinite(parsed) ? parsed : 0);
               }}
               keyboardType="numeric"
+              placeholderTextColor={t.textSubtle}
               style={{
                 height: 44,
                 borderRadius: borderRadius.input,
                 borderWidth: 1,
-                borderColor: '#E2E8F0',
+                borderColor: t.inputBorder,
                 paddingHorizontal: 12,
-                backgroundColor: 'white',
+                backgroundColor: t.inputBg,
+                color: t.text,
               }}
             />
-            <Text style={{ color: '#64748B', fontSize: 12, marginTop: 8 }}>
+            <Text style={{ color: t.textMuted, fontSize: 12, marginTop: 8 }}>
               Saved automatically after 800ms
             </Text>
           </View>
@@ -251,18 +247,18 @@ export default function DashboardScreen() {
       </View>
 
       <View style={{ marginTop: 18 }}>
-        <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 10 }}>Reminders</Text>
+        <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 10, color: t.text }}>Reminders</Text>
         {urgentReminders.length === 0 ? (
           <View
             style={{
               padding: 14,
               borderRadius: borderRadius.card,
               borderWidth: 1,
-              borderColor: '#E2E8F0',
-              backgroundColor: 'white',
+              borderColor: t.border,
+              backgroundColor: t.surface,
             }}>
-            <Text style={{ fontWeight: '700', marginBottom: 6 }}>All Good ✅</Text>
-            <Text style={{ color: '#64748B', fontSize: 12 }}>No soon/overdue services yet.</Text>
+            <Text style={{ fontWeight: '700', marginBottom: 6, color: t.text }}>All Good ✅</Text>
+            <Text style={{ color: t.textMuted, fontSize: 12 }}>No soon/overdue services yet.</Text>
           </View>
         ) : (
           <View style={{ gap: 10 }}>
@@ -274,13 +270,15 @@ export default function DashboardScreen() {
                   padding: 14,
                   borderRadius: borderRadius.card,
                   borderWidth: 1,
-                  borderColor: '#E2E8F0',
-                  backgroundColor: 'white',
+                  borderColor: t.border,
+                  backgroundColor: t.surface,
+                  borderLeftWidth: 3,
+                  borderLeftColor: r.status === 'overdue' ? overdue : soon,
                 }}>
-                <Text style={{ fontWeight: '800' }}>
+                <Text style={{ fontWeight: '800', color: t.text }}>
                   {r.status === 'overdue' ? '⚠️ Overdue' : '🚨 Due Soon'}: {r.vehicleName}
                 </Text>
-                <Text style={{ color: '#64748B', marginTop: 6, fontSize: 12 }}>
+                <Text style={{ color: t.textMuted, marginTop: 6, fontSize: 12 }}>
                   {r.type.replace(/_/g, ' ')} in {Math.max(0, r.remainingKM).toLocaleString()} km
                 </Text>
               </Pressable>

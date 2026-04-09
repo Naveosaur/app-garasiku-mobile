@@ -1,13 +1,12 @@
 import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View, useColorScheme } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { Colors, brand } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors, overdue, safe } from '@/constants/theme';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
 import { useVehicleStore } from '@/store/vehicleStore';
 import { getMaintenanceStatuses } from '@/utils/maintenanceCalc';
@@ -84,6 +83,12 @@ export default function TabLayout() {
           tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
           headerShown: false,
           tabBarButton: HapticTab,
+          tabBarStyle: {
+            backgroundColor: Colors[colorScheme ?? 'light'].tabBar,
+            borderTopColor: Colors[colorScheme ?? 'light'].tabBarBorder,
+            borderTopWidth: 1,
+            elevation: 0,
+          },
         }}>
         <Tabs.Screen
           name="index"
@@ -129,7 +134,7 @@ export default function TabLayout() {
                       height: 18,
                       paddingHorizontal: 5,
                       borderRadius: 9,
-                      backgroundColor: 'red',
+                      backgroundColor: overdue,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}>
@@ -137,6 +142,19 @@ export default function TabLayout() {
                       {Math.min(99, soonOverdueCount)}
                     </Text>
                   </View>
+                ) : null}
+                {unreadDueCount > 0 ? (
+                  <View
+                    style={{
+                      position: 'absolute',
+                      right: -4,
+                      top: 0,
+                      width: 10,
+                      height: 10,
+                      borderRadius: 999,
+                      backgroundColor: safe,
+                    }}
+                  />
                 ) : null}
               </View>
             ),
@@ -161,11 +179,11 @@ export default function TabLayout() {
           width: 56,
           height: 56,
           borderRadius: 28,
-          backgroundColor: brand,
+          backgroundColor: Colors[colorScheme ?? 'light'].tint,
           alignItems: 'center',
           justifyContent: 'center',
           borderWidth: 3,
-          borderColor: Colors[colorScheme ?? 'light'].background,
+          borderColor: Colors[colorScheme ?? 'light'].tabBar,
         }}>
         <MaterialIcons name="add" size={28} color="white" />
       </Pressable>

@@ -1,8 +1,8 @@
 import React from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
-import { View, Text } from 'react-native';
+import { useColorScheme, View, Text } from 'react-native';
 
-import { overdue, safe, soon } from '@/constants/theme';
+import { overdue, safe, soon, useAppTheme } from '@/constants/theme';
 import type { MaintenanceStatus } from '@/types';
 
 type Props = {
@@ -46,6 +46,7 @@ function typeIcon(type: MaintenanceStatus['type']) {
 }
 
 export default function MaintenanceProgressRow({ status }: Props) {
+  const t = useAppTheme();
   const color = statusColor(status.status);
   const intervalKM = status.intervalKM || 1;
 
@@ -60,8 +61,8 @@ export default function MaintenanceProgressRow({ status }: Props) {
         padding: 12,
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: '#E2E8F0',
-        backgroundColor: 'white',
+        borderColor: t.border,
+        backgroundColor: t.surface,
       }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -77,8 +78,8 @@ export default function MaintenanceProgressRow({ status }: Props) {
             <MaterialIcons name={typeIcon(status.type) as any} size={18} color={color} />
           </View>
           <View>
-            <Text style={{ fontWeight: '800', marginBottom: 2 }}>{typeLabel(status.type)}</Text>
-            <Text style={{ color: '#64748B', fontSize: 12 }}>Last: {status.lastServiceKM.toLocaleString()} km</Text>
+            <Text style={{ fontWeight: '800', marginBottom: 2, color: t.text }}>{typeLabel(status.type)}</Text>
+            <Text style={{ color: t.textMuted, fontSize: 12 }}>Last: {status.lastServiceKM.toLocaleString()} km</Text>
           </View>
         </View>
 
@@ -101,14 +102,14 @@ export default function MaintenanceProgressRow({ status }: Props) {
         style={{
           height: 10,
           borderRadius: 999,
-          backgroundColor: '#E2E8F0',
+          backgroundColor: t.border,
           overflow: 'hidden',
         }}>
         <View style={{ height: '100%', width: `${Math.round(fillRatio * 100)}%`, backgroundColor: color }} />
       </View>
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-        <Text style={{ color: '#64748B', fontSize: 12 }}>Next: {status.nextServiceKM.toLocaleString()} km</Text>
+        <Text style={{ color: t.textMuted, fontSize: 12 }}>Next: {status.nextServiceKM.toLocaleString()} km</Text>
         <Text style={{ color: color, fontSize: 12, fontWeight: '800' }}>{status.status === 'safe' ? 'Safe' : status.status === 'soon' ? 'Soon' : 'Overdue'}</Text>
       </View>
     </View>

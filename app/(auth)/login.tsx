@@ -1,13 +1,13 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View, useColorScheme } from 'react-native';
 
-import { brand, borderRadius } from '@/constants/theme';
+import { borderRadius, useAppTheme } from '@/constants/theme';
 import { useAuthStore } from '@/store/authStore';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const t = useAppTheme();
 
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -46,7 +46,7 @@ export default function LoginScreen() {
       setError(null);
       await useAuthStore.getState().login({
         name: 'Budi Santoso',
-        email: 'budi@vehicletracker.local',
+        email: 'budi@vehicare.local',
       });
       router.replace('/');
     } catch {
@@ -57,15 +57,13 @@ export default function LoginScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, paddingTop: 60 }}>
-      <LinearGradient
-        colors={['#4F46E5', '#7C3AED']}
-        style={{ borderRadius: 16, padding: 14, marginBottom: 16 }}>
-        <Text style={{ color: 'white', fontSize: 18, fontWeight: '900' }}>Login</Text>
-        <Text style={{ color: 'rgba(255,255,255,0.85)', marginTop: 6 }}>
-          Local-only authentication (MVP).
+    <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, paddingTop: 60, backgroundColor: t.bg }}>
+      <View style={{ marginBottom: 24 }}>
+        <Text style={{ color: t.text, fontSize: 28, fontWeight: '900' }}>VehiCare</Text>
+        <Text style={{ color: t.textMuted, marginTop: 6 }}>
+          Sign in to manage your motorcycle maintenance
         </Text>
-      </LinearGradient>
+      </View>
 
       <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
         <Pressable
@@ -75,9 +73,9 @@ export default function LoginScreen() {
             alignItems: 'center',
             paddingVertical: 10,
             borderRadius: borderRadius.button,
-            backgroundColor: '#EEF2FF',
+            backgroundColor: t.bgSecondary,
           }}>
-          <Text style={{ fontWeight: '900', color: '#4338CA' }}>Register</Text>
+          <Text style={{ fontWeight: '900', color: t.text }}>Register</Text>
         </Pressable>
         <View
           style={{
@@ -85,44 +83,50 @@ export default function LoginScreen() {
             alignItems: 'center',
             paddingVertical: 10,
             borderRadius: borderRadius.button,
-            backgroundColor: 'rgba(99,102,241,0.16)',
+            backgroundColor: t.brandMuted,
+            borderBottomWidth: 2,
+            borderBottomColor: t.brand,
           }}>
-          <Text style={{ fontWeight: '900', color: brand }}>Login</Text>
+          <Text style={{ fontWeight: '900', color: t.brand }}>Login</Text>
         </View>
       </View>
 
-      <Text style={{ fontWeight: '900', marginBottom: 6 }}>Email</Text>
+      <Text style={{ fontWeight: '900', marginBottom: 6, color: t.text }}>Email</Text>
       <TextInput
         value={email}
         onChangeText={setEmail}
         placeholder="you@example.com"
+        placeholderTextColor={t.textSubtle}
         keyboardType="email-address"
         autoCapitalize="none"
         style={{
           height: 44,
           borderRadius: borderRadius.input,
           borderWidth: 1,
-          borderColor: '#E2E8F0',
+          borderColor: t.inputBorder,
           paddingHorizontal: 12,
           marginBottom: 14,
-          backgroundColor: 'white',
+          backgroundColor: t.inputBg,
+          color: t.text,
         }}
       />
 
-      <Text style={{ fontWeight: '900', marginBottom: 6 }}>Password</Text>
+      <Text style={{ fontWeight: '900', marginBottom: 6, color: t.text }}>Password</Text>
       <TextInput
         value={password}
         onChangeText={setPassword}
         placeholder="••••••••"
+        placeholderTextColor={t.textSubtle}
         secureTextEntry
         style={{
           height: 44,
           borderRadius: borderRadius.input,
           borderWidth: 1,
-          borderColor: '#E2E8F0',
+          borderColor: t.inputBorder,
           paddingHorizontal: 12,
           marginBottom: 14,
-          backgroundColor: 'white',
+          backgroundColor: t.inputBg,
+          color: t.text,
         }}
       />
 
@@ -131,12 +135,14 @@ export default function LoginScreen() {
         style={{
           height: 44,
           borderRadius: borderRadius.button,
-          backgroundColor: '#111827',
+          backgroundColor: t.surface,
+          borderWidth: 1,
+          borderColor: t.border,
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: 14,
         }}>
-        <Text style={{ color: 'white', fontWeight: '900' }}>Use Dummy Account (Quick Login)</Text>
+        <Text style={{ color: t.text, fontWeight: '900' }}>Use Dummy Account (Quick Login)</Text>
       </Pressable>
 
       {error ? <Text style={{ color: '#EF4444', fontWeight: '900', marginBottom: 12 }}>{error}</Text> : null}
@@ -147,7 +153,7 @@ export default function LoginScreen() {
         style={{
           height: 48,
           borderRadius: borderRadius.button,
-          backgroundColor: brand,
+          backgroundColor: t.brand,
           alignItems: 'center',
           justifyContent: 'center',
           opacity: loading ? 0.7 : 1,

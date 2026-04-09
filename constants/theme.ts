@@ -1,11 +1,8 @@
-import { Platform } from 'react-native';
+import { Platform, useColorScheme } from 'react-native';
 
 import type { ServiceStatus } from '@/types';
 
-// Design-system palette for the VehicleTracker MVP (indonesian motorcycle maintenance).
-export const brand = '#6366F1'; // Indigo
-export const brandLight = '#EEF2FF';
-
+// Status colors (same across light/dark)
 export const safe = '#22C55E';
 export const safeLight = '#DCFCE7';
 export const safeDark = '#166534';
@@ -18,10 +15,13 @@ export const overdue = '#EF4444';
 export const overdueLight = '#FEE2E2';
 export const overdueDark = '#7F1D1D';
 
-export const text = '#0F172A';
-export const muted = '#64748B';
-export const border = '#E2E8F0';
-export const bg = '#F8F9FC';
+// Legacy exports for backward compatibility
+export const brand = '#6366F1';
+export const brandLight = '#EEF2FF';
+export const text = '#111827';
+export const muted = '#6B7280';
+export const border = '#F3F4F6';
+export const bg = '#FFFFFF';
 export const card = '#FFFFFF';
 
 export const cardGradients: Record<ServiceStatus, [string, string]> = {
@@ -37,16 +37,83 @@ export const borderRadius = {
   badge: 20,
 } as const;
 
-export const Typography = {
-  boldWeight: '600',
-  // Mono font family differs by platform.
-  mono: Platform.select({
-    ios: 'Menlo',
-    android: 'monospace',
-    default: 'monospace',
-    web: 'monospace',
-  }),
+// New premium light/dark theme token system
+export const theme = {
+  light: {
+    // Backgrounds
+    bg: '#FFFFFF',
+    bgSecondary: '#FAFAFA',
+    surface: '#FFFFFF',
+
+    // Text
+    text: '#111827',
+    textMuted: '#6B7280',
+    textSubtle: '#9CA3AF',
+
+    // Brand
+    brand: '#6366F1',
+    brandMuted: '#EEF2FF',
+
+    // Borders & dividers
+    border: '#F3F4F6',
+    borderStrong: '#E5E7EB',
+
+    // Tab bar
+    tabBar: '#FFFFFF',
+    tabBarBorder: '#F3F4F6',
+
+    // Input
+    inputBg: '#F9FAFB',
+    inputBorder: '#E5E7EB',
+
+    // Status badge backgrounds
+    safeBadgeBg: 'rgba(34, 197, 94, 0.12)',
+    soonBadgeBg: 'rgba(234, 179, 8, 0.12)',
+    overdueBadgeBg: 'rgba(239, 68, 68, 0.12)',
+  },
+  dark: {
+    bg: '#0A0A0F',
+    bgSecondary: '#111118',
+    surface: '#16161F',
+
+    text: '#F9FAFB',
+    textMuted: '#9CA3AF',
+    textSubtle: '#6B7280',
+
+    brand: '#818CF8',
+    brandMuted: '#1E1B4B',
+
+    border: '#252535',
+    borderStrong: '#2E2E40',
+
+    tabBar: '#16161F',
+    tabBarBorder: '#252535',
+
+    inputBg: '#1C1C27',
+    inputBorder: '#252535',
+
+    safeBadgeBg: 'rgba(34, 197, 94, 0.15)',
+    soonBadgeBg: 'rgba(234, 179, 8, 0.15)',
+    overdueBadgeBg: 'rgba(239, 68, 68, 0.15)',
+  },
 } as const;
+
+// Convenience hook for accessing current theme
+export function useAppTheme() {
+  const colorScheme = useColorScheme();
+  return theme[colorScheme ?? 'light'];
+}
+
+// Shadow utility for cards
+export function cardShadowStyle(isDark: boolean) {
+  return {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: isDark ? 0.3 : 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  };
+}
 
 /**
  * Template compatibility: `useThemeColor` expects `Colors.light`/`Colors.dark` with
@@ -54,20 +121,24 @@ export const Typography = {
  */
 export const Colors = {
   light: {
-    text,
-    background: bg,
-    tint: brand,
-    icon: muted,
-    tabIconDefault: muted,
-    tabIconSelected: brand,
+    text: theme.light.text,
+    background: theme.light.bg,
+    tint: theme.light.brand,
+    icon: theme.light.textMuted,
+    tabIconDefault: theme.light.textMuted,
+    tabIconSelected: theme.light.brand,
+    tabBar: theme.light.tabBar,
+    tabBarBorder: theme.light.tabBarBorder,
   },
   dark: {
-    text: '#F8FAFC',
-    background: '#0F172A',
-    tint: brand,
-    icon: muted,
-    tabIconDefault: muted,
-    tabIconSelected: brandLight,
+    text: theme.dark.text,
+    background: theme.dark.bg,
+    tint: theme.dark.brand,
+    icon: theme.dark.textMuted,
+    tabIconDefault: theme.dark.textMuted,
+    tabIconSelected: theme.dark.brand,
+    tabBar: theme.dark.tabBar,
+    tabBarBorder: theme.dark.tabBarBorder,
   },
 };
 

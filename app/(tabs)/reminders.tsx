@@ -2,9 +2,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View, useColorScheme } from 'react-native';
 
-import { brand, borderRadius, overdue, safe, soon } from '@/constants/theme';
+import { borderRadius, overdue, safe, soon, useAppTheme, cardShadowStyle } from '@/constants/theme';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
 import { useVehicleStore } from '@/store/vehicleStore';
 import { getMaintenanceStatuses } from '@/utils/maintenanceCalc';
@@ -64,6 +64,10 @@ type ReminderItem = {
 
 export default function RemindersScreen() {
   const router = useRouter();
+  const t = useAppTheme();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   const vehicles = useVehicleStore((s) => s.vehicles);
   const records = useMaintenanceStore((s) => s.records);
 
@@ -136,12 +140,12 @@ export default function RemindersScreen() {
   const soonItems = reminderItems.filter((i) => i.status === 'soon');
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
-      <Text style={{ fontSize: 18, fontWeight: '900', marginBottom: 10 }}>Reminders</Text>
+    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120, backgroundColor: t.bg }}>
+      <Text style={{ fontSize: 18, fontWeight: '900', marginBottom: 10, color: t.text }}>Reminders</Text>
 
       {overdueItems.length > 0 ? (
         <View style={{ marginBottom: 18 }}>
-          <Text style={{ fontWeight: '900', marginBottom: 10 }}>🚨 Action Required</Text>
+          <Text style={{ fontWeight: '900', marginBottom: 10, color: t.text }}>🚨 Action Required</Text>
 
           {overdueItems.map((r) => {
             const color = statusColor(r.status);
@@ -155,9 +159,10 @@ export default function RemindersScreen() {
                   padding: 14,
                   borderRadius: borderRadius.card,
                   borderWidth: 1,
-                  borderColor: '#E2E8F0',
-                  backgroundColor: 'white',
+                  borderColor: t.border,
+                  backgroundColor: t.surface,
                   marginBottom: 10,
+                  ...cardShadowStyle(isDark),
                 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                   <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
@@ -173,14 +178,14 @@ export default function RemindersScreen() {
                       <MaterialIcons name={typeIcon(r.type) as any} size={18} color={color} />
                     </View>
                     <View>
-                      <Text style={{ fontWeight: '900' }}>
+                      <Text style={{ fontWeight: '900', color: t.text }}>
                         {typeLabel(r.type)} • {r.vehicleName}
                       </Text>
-                      <Text style={{ color: '#64748B', fontSize: 12, marginTop: 4 }}>
+                      <Text style={{ color: t.textMuted, fontSize: 12, marginTop: 4 }}>
                         {Math.abs(r.remainingKM).toLocaleString()} km overdue. Next at{' '}
                         {r.nextServiceKM.toLocaleString()} km.
                       </Text>
-                      <Text style={{ color: '#94A3B8', fontSize: 12, marginTop: 4 }}>
+                      <Text style={{ color: t.textSubtle, fontSize: 12, marginTop: 4 }}>
                         {timeAgo(r.timeForDisplay)}
                       </Text>
                     </View>
@@ -192,7 +197,7 @@ export default function RemindersScreen() {
                         width: 10,
                         height: 10,
                         borderRadius: 999,
-                        backgroundColor: brand,
+                        backgroundColor: t.brand,
                         marginTop: 4,
                       }}
                     />
@@ -207,7 +212,7 @@ export default function RemindersScreen() {
             style={{
               height: 44,
               borderRadius: borderRadius.button,
-              backgroundColor: brand,
+              backgroundColor: t.brand,
               alignItems: 'center',
               justifyContent: 'center',
               marginTop: 8,
@@ -219,7 +224,7 @@ export default function RemindersScreen() {
 
       {soonItems.length > 0 ? (
         <View style={{ marginBottom: 18 }}>
-          <Text style={{ fontWeight: '900', marginBottom: 10 }}>⚠️ Due Soon</Text>
+          <Text style={{ fontWeight: '900', marginBottom: 10, color: t.text }}>⚠️ Due Soon</Text>
 
           {soonItems.map((r) => {
             const color = statusColor(r.status);
@@ -288,11 +293,12 @@ export default function RemindersScreen() {
             padding: 14,
             borderRadius: borderRadius.card,
             borderWidth: 1,
-            borderColor: '#E2E8F0',
-            backgroundColor: 'white',
+            borderColor: t.border,
+            backgroundColor: t.surface,
+            ...cardShadowStyle(isDark),
           }}>
-          <Text style={{ fontWeight: '900', marginBottom: 6 }}>✅ All Good</Text>
-          <Text style={{ color: '#64748B', fontSize: 12 }}>No upcoming services yet.</Text>
+          <Text style={{ fontWeight: '900', marginBottom: 6, color: t.text }}>✅ All Good</Text>
+          <Text style={{ color: t.textMuted, fontSize: 12 }}>No upcoming services yet.</Text>
         </View>
       ) : null}
     </ScrollView>

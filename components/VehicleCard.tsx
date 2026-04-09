@@ -1,18 +1,13 @@
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { useColorScheme } from 'react-native';
 import React from 'react';
 import { Animated, Pressable, Text, View } from 'react-native';
 
-import { cardGradients, borderRadius, muted, safe, soon, overdue } from '@/constants/theme';
+import { borderRadius, safe, soon, overdue, useAppTheme, cardShadowStyle } from '@/constants/theme';
 import type { MaintenanceStatus, Vehicle } from '@/types';
 import { getVehicleWorstStatus } from '@/utils/maintenanceCalc';
 import { useVehicleStore } from '@/store/vehicleStore';
-
-type Props = {
-  vehicle: Vehicle;
-  statuses: MaintenanceStatus[];
-};
 
 const rankStatus = (status: MaintenanceStatus['status']): number => {
   if (status === 'overdue') return 2;
@@ -20,9 +15,17 @@ const rankStatus = (status: MaintenanceStatus['status']): number => {
   return 0;
 };
 
+type Props = {
+  vehicle: Vehicle;
+  statuses: MaintenanceStatus[];
+};
+
 export default function VehicleCard({ vehicle, statuses }: Props) {
   const router = useRouter();
   const setRecentVehicle = useVehicleStore((s) => s.setRecentVehicle);
+  const t = useAppTheme();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const worstStatus = getVehicleWorstStatus(statuses);
 
@@ -84,19 +87,22 @@ export default function VehicleCard({ vehicle, statuses }: Props) {
         router.push(`/vehicle/${vehicle.id}`);
       }}
       style={{ width: 320, marginVertical: 4 }}>
-      <LinearGradient
-        colors={cardGradients[worstStatus]}
+      <View
         style={{
           borderRadius: borderRadius.card,
           padding: 14,
           overflow: 'hidden',
+          backgroundColor: t.surface,
+          borderWidth: 1,
+          borderColor: t.border,
+          ...cardShadowStyle(isDark),
         }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <View>
-            <Text style={{ color: 'white', fontSize: 16, fontWeight: '800' }} numberOfLines={1}>
+            <Text style={{ color: t.text, fontSize: 16, fontWeight: '800' }} numberOfLines={1}>
               {vehicle.name}
             </Text>
-            <Text style={{ color: 'rgba(255,255,255,0.85)', marginTop: 4 }} numberOfLines={1}>
+            <Text style={{ color: t.textMuted, marginTop: 4 }} numberOfLines={1}>
               {vehicle.plate}
             </Text>
           </View>
@@ -116,28 +122,28 @@ export default function VehicleCard({ vehicle, statuses }: Props) {
 
         <View style={{ marginTop: 12 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 10 }}>
-            <Text style={{ color: 'rgba(255,255,255,0.92)', fontSize: 12 }}>
+            <Text style={{ color: t.textMuted, fontSize: 12 }}>
               Current KM
             </Text>
-            <Text style={{ color: 'white', fontSize: 12, fontWeight: '800' }}>
+            <Text style={{ color: t.text, fontSize: 12, fontWeight: '800' }}>
               {vehicle.currentKM.toLocaleString()}
             </Text>
           </View>
           <View style={{ height: 6 }} />
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 10 }}>
-            <Text style={{ color: 'rgba(255,255,255,0.92)', fontSize: 12 }}>
+            <Text style={{ color: t.textMuted, fontSize: 12 }}>
               Next Service
             </Text>
-            <Text style={{ color: 'white', fontSize: 12, fontWeight: '800' }}>
+            <Text style={{ color: t.text, fontSize: 12, fontWeight: '800' }}>
               {mostUrgent.nextServiceKM.toLocaleString()}
             </Text>
           </View>
           <View style={{ height: 6 }} />
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 10 }}>
-            <Text style={{ color: 'rgba(255,255,255,0.92)', fontSize: 12 }}>
+            <Text style={{ color: t.textMuted, fontSize: 12 }}>
               Remaining
             </Text>
-            <Text style={{ color: 'white', fontSize: 12, fontWeight: '800' }}>
+            <Text style={{ color: t.text, fontSize: 12, fontWeight: '800' }}>
               {Math.max(0, mostUrgent.remainingKM).toLocaleString()} km
             </Text>
           </View>
@@ -148,7 +154,7 @@ export default function VehicleCard({ vehicle, statuses }: Props) {
             style={{
               height: 10,
               borderRadius: 999,
-              backgroundColor: 'rgba(255,255,255,0.18)',
+              backgroundColor: t.border,
               overflow: 'hidden',
             }}>
             <Animated.View
@@ -161,13 +167,13 @@ export default function VehicleCard({ vehicle, statuses }: Props) {
             />
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-            <Text style={{ color: muted, fontSize: 11, opacity: 0.9 }}>Used</Text>
-            <Text style={{ color: 'rgba(255,255,255,0.88)', fontSize: 11, fontWeight: '700' }}>
+            <Text style={{ color: t.textMuted, fontSize: 11, opacity: 0.9 }}>Used</Text>
+            <Text style={{ color: t.text, fontSize: 11, fontWeight: '700' }}>
               {Math.round(fillRatio * 100)}%
             </Text>
           </View>
         </View>
-      </LinearGradient>
+      </View>
     </Pressable>
   );
 }
