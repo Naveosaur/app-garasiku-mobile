@@ -37,6 +37,16 @@ export const borderRadius = {
   badge: 20,
 } as const;
 
+export const Typography = {
+  boldWeight: '600',
+  mono: Platform.select({
+    ios: 'Menlo',
+    android: 'monospace',
+    default: 'monospace',
+    web: 'monospace',
+  }),
+} as const;
+
 // New premium light/dark theme token system
 export const theme = {
   light: {
