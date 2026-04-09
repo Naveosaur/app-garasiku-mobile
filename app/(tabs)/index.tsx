@@ -155,7 +155,7 @@ export default function DashboardScreen() {
               height: 44,
               paddingHorizontal: 18,
               borderRadius: borderRadius.button,
-              backgroundColor: brand,
+              backgroundColor: t.brand,
               alignItems: 'center',
               justifyContent: 'center',
               minWidth: 220,

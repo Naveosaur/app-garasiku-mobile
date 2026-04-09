@@ -275,7 +275,7 @@ export default function RemindersScreen() {
                         width: 10,
                         height: 10,
                         borderRadius: 999,
-                        backgroundColor: brand,
+                        backgroundColor: t.brand,
                         marginTop: 4,
                       }}
                     />
