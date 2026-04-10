@@ -52,7 +52,12 @@ export const useMaintenanceStore = create<MaintenanceStore>()(
       name: 'maintenance-store',
       storage: createJSONStorage(() => AsyncStorage),
       onRehydrateStorage: () => (state) => {
-        state?.setHydrated(true);
+        if (state) {
+          state.setHydrated(true);
+        } else {
+          // No persisted data — still mark as hydrated so screens don't block.
+          useMaintenanceStore.setState({ hydrated: true });
+        }
       },
     },
   ),

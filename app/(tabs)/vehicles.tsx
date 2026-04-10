@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useColorScheme } from 'react-native';
 import React from 'react';
 import { Alert, FlatList, Pressable, ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { borderRadius, useAppTheme, safe, soon, overdue, cardShadowStyle } from '@/constants/theme';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
@@ -21,6 +22,7 @@ export default function VehiclesScreen() {
   const t = useAppTheme();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const insets = useSafeAreaInsets();
 
   const vehicles = useVehicleStore((s) => s.vehicles);
   const hydratedVehicles = useVehicleStore((s) => s.hydrated);
@@ -31,7 +33,7 @@ export default function VehiclesScreen() {
 
   if (!hydratedVehicles || !hydratedMaintenance) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg }}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top, backgroundColor: t.bg }}>
         <Text>Loading...</Text>
       </View>
     );
@@ -39,7 +41,7 @@ export default function VehiclesScreen() {
 
   if (vehicles.length === 0) {
     return (
-      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24, backgroundColor: t.bg }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24, paddingTop: insets.top + 24, backgroundColor: t.bg }}>
         <View style={{ alignItems: 'center' }}>
           <Text style={{ fontSize: 70, marginBottom: 16 }}>🏍️</Text>
           <Text style={{ fontSize: 20, fontWeight: '600', textAlign: 'center', marginBottom: 8, color: t.text }}>
@@ -67,7 +69,7 @@ export default function VehiclesScreen() {
   }
 
   return (
-    <View style={{ flex: 1, padding: 16, backgroundColor: t.bg }}>
+    <View style={{ flex: 1, paddingTop: insets.top + 16, paddingHorizontal: 16, paddingBottom: 16, backgroundColor: t.bg }}>
       <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <Text style={{ fontSize: 18, fontWeight: '900', color: t.text }}>Vehicles</Text>
         <Pressable

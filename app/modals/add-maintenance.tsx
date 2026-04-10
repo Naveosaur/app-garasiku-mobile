@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, ScrollView, Text, TextInput, View, useColorScheme } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { borderRadius, overdue, useAppTheme } from '@/constants/theme';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
@@ -53,6 +54,7 @@ export default function AddMaintenanceModalScreen() {
   const t = useAppTheme();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ vehicleId?: string }>();
 
   const vehicleIdParam = params.vehicleId;
@@ -108,7 +110,21 @@ export default function AddMaintenanceModalScreen() {
 
   if (!vehicleId || !vehicle) {
     return (
-      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, backgroundColor: t.bg }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, paddingTop: insets.top + 16, backgroundColor: t.bg }}>
+        <Pressable
+          onPress={() => router.back()}
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: borderRadius.button,
+            backgroundColor: t.bgSecondary,
+            alignItems: 'center',
+            justifyContent: 'center',
+            alignSelf: 'flex-end',
+            marginBottom: 12,
+          }}>
+          <MaterialIcons name="close" size={20} color={t.text} />
+        </Pressable>
         <Text style={{ fontWeight: '900', marginBottom: 12, color: t.text }}>Vehicle not found</Text>
         <Pressable
           onPress={() => router.back()}
@@ -127,7 +143,24 @@ export default function AddMaintenanceModalScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, paddingBottom: 28, backgroundColor: t.bg }}>
+    <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, paddingTop: insets.top + 16, paddingBottom: 28, backgroundColor: t.bg }}>
+      {/* Header with Close Button */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <Text style={{ fontSize: 18, fontWeight: '900', color: t.text }}>Add Service Record</Text>
+        <Pressable
+          onPress={() => router.back()}
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: borderRadius.button,
+            backgroundColor: t.bgSecondary,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <MaterialIcons name="close" size={20} color={t.text} />
+        </Pressable>
+      </View>
+
       <View
         style={{
           borderRadius: 16,

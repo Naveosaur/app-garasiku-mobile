@@ -16,7 +16,7 @@ export const overdueLight = '#FEE2E2';
 export const overdueDark = '#7F1D1D';
 
 // Legacy exports for backward compatibility
-export const brand = '#6366F1';
+export const brand = '#111827';
 export const brandLight = '#EEF2FF';
 export const text = '#111827';
 export const muted = '#6B7280';
@@ -61,8 +61,8 @@ export const theme = {
     textSubtle: '#9CA3AF',
 
     // Brand
-    brand: '#6366F1',
-    brandMuted: '#EEF2FF',
+    brand: '#111827',
+    brandMuted: '#F3F4F6',
 
     // Borders & dividers
     border: '#F3F4F6',
@@ -90,8 +90,8 @@ export const theme = {
     textMuted: '#9CA3AF',
     textSubtle: '#6B7280',
 
-    brand: '#818CF8',
-    brandMuted: '#1E1B4B',
+    brand: '#F9FAFB',
+    brandMuted: '#252535',
 
     border: '#252535',
     borderStrong: '#2E2E40',

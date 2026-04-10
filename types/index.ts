@@ -10,7 +10,9 @@ export type ServiceStatus = 'safe' | 'soon' | 'overdue';
 
 export interface Vehicle {
   id: string;
-  name: string; // e.g. "Honda Beat"
+  name: string; // Display name for the vehicle, e.g. "My Honda"
+  brand: string; // Brand, e.g. "Honda"
+  model: string; // Model, e.g. "Beat"
   plate: string; // e.g. "B 1234 ABC"
   type: VehicleType;
   year: number;

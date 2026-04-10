@@ -32,16 +32,20 @@ export const useVehicleStore = create<VehicleStore>()(
       setHydrated: (hydrated) => set({ hydrated }),
 
       addVehicle: (vehicle) => {
-        const now = new Date().toISOString();
+        const finalVehicle: Vehicle = {
+          id: vehicle.id,
+          name: vehicle.name,
+          brand: vehicle.brand,
+          model: vehicle.model,
+          plate: vehicle.plate,
+          type: vehicle.type,
+          year: vehicle.year,
+          currentKM: vehicle.currentKM,
+          createdAt: vehicle.createdAt || new Date().toISOString(),
+          updatedAt: vehicle.updatedAt || new Date().toISOString(),
+        };
         set((state) => ({
-          vehicles: [
-            ...state.vehicles,
-            {
-              ...vehicle,
-              createdAt: vehicle.createdAt ?? now,
-              updatedAt: vehicle.updatedAt ?? now,
-            },
-          ],
+          vehicles: [...state.vehicles, finalVehicle],
         }));
       },
 
@@ -88,8 +92,20 @@ export const useVehicleStore = create<VehicleStore>()(
     {
       name: 'vehicle-store',
       storage: createJSONStorage(() => AsyncStorage),
+      version: 1,
+      migrate: (persistedState: any, version: number) => {
+        if (version < 1) {
+          // Clear old data structure when schema changes
+          return undefined;
+        }
+        return persistedState;
+      },
       onRehydrateStorage: () => (state) => {
-        state?.setHydrated(true);
+        if (state) {
+          state.setHydrated(true);
+        } else {
+          useVehicleStore.setState({ hydrated: true });
+        }
       },
     },
   ),

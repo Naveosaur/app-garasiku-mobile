@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics';
 import React from 'react';
 import { FlatList, Pressable, ScrollView, Text, TextInput, View, useColorScheme } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { borderRadius, useAppTheme, overdue, soon } from '@/constants/theme';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
@@ -16,7 +17,7 @@ import VehicleCard from '@/components/VehicleCard';
 export default function DashboardScreen() {
   const router = useRouter();
   const t = useAppTheme();
-  const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
 
   const userName = useAuthStore((s) => s.user?.name ?? '');
   const vehicles = useVehicleStore((s) => s.vehicles);
@@ -132,7 +133,7 @@ export default function DashboardScreen() {
 
   if (!vehicleHydrated || !maintenanceHydrated) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
         <Text>Loading...</Text>
       </View>
     );
@@ -140,7 +141,7 @@ export default function DashboardScreen() {
 
   if (vehicles.length === 0) {
     return (
-      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24, paddingTop: insets.top + 24 }}>
         <View style={{ alignItems: 'center' }}>
           <Text style={{ fontSize: 70, marginBottom: 16 }}>🏍️</Text>
           <Text style={{ fontSize: 20, fontWeight: '600', textAlign: 'center', marginBottom: 8 }}>
@@ -170,7 +171,7 @@ export default function DashboardScreen() {
   const showVerticalList = vehicles.length <= 2;
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 140, backgroundColor: t.bg }}>
+    <ScrollView contentContainerStyle={{ padding: 16, paddingTop: insets.top + 16, paddingBottom: 140, backgroundColor: t.bg }}>
       <View style={{ marginBottom: 14 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View style={{ flex: 1 }}>

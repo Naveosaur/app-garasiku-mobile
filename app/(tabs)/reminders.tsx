@@ -3,6 +3,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, ScrollView, Text, View, useColorScheme } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { borderRadius, overdue, safe, soon, useAppTheme, cardShadowStyle } from '@/constants/theme';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
@@ -138,10 +139,25 @@ export default function RemindersScreen() {
 
   const overdueItems = reminderItems.filter((i) => i.status === 'overdue');
   const soonItems = reminderItems.filter((i) => i.status === 'soon');
+  const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120, backgroundColor: t.bg }}>
-      <Text style={{ fontSize: 18, fontWeight: '900', marginBottom: 10, color: t.text }}>Reminders</Text>
+    <ScrollView contentContainerStyle={{ padding: 16, paddingTop: insets.top + 16, paddingBottom: 120, backgroundColor: t.bg }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <Text style={{ fontSize: 18, fontWeight: '900', color: t.text }}>Reminders</Text>
+        <Pressable
+          onPress={() => router.back()}
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: borderRadius.button,
+            backgroundColor: t.bgSecondary,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <MaterialIcons name="close" size={20} color={t.text} />
+        </Pressable>
+      </View>
 
       {overdueItems.length > 0 ? (
         <View style={{ marginBottom: 18 }}>

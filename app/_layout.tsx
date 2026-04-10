@@ -46,6 +46,7 @@ export default function RootLayout() {
         <Stack.Screen name="modals" options={{ headerShown: false }} />
         <Stack.Screen name="vehicle/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="vehicle/[id]/history" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/change-email" options={{ headerShown: false }} />
       </Stack>
 
       {booting || onboardingDone === null || !authHydrated ? null : !onboardingDone ? (
