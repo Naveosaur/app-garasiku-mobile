@@ -31,10 +31,21 @@ export const cardGradients: Record<ServiceStatus, [string, string]> = {
 };
 
 export const borderRadius = {
-  card: 14,
-  button: 12,
-  input: 10,
-  badge: 20,
+  card: 20,
+  button: 14,
+  input: 12,
+  badge: 999,
+  modal: 28,
+  sheet: 32,
+} as const;
+
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 24,
+  xxl: 32,
 } as const;
 
 export const Typography = {
@@ -80,6 +91,18 @@ export const theme = {
     safeBadgeBg: 'rgba(34, 197, 94, 0.12)',
     soonBadgeBg: 'rgba(234, 179, 8, 0.12)',
     overdueBadgeBg: 'rgba(239, 68, 68, 0.12)',
+
+    // Glass morphism
+    glass: {
+      surface: 'rgba(255, 255, 255, 0.72)',
+      surfaceStrong: 'rgba(255, 255, 255, 0.85)',
+      border: 'rgba(255, 255, 255, 0.55)',
+      innerBorder: 'rgba(0, 0, 0, 0.06)',
+      blurTint: 'light' as const,
+      blurIntensity: 60,
+      shadow: 'rgba(0, 0, 0, 0.10)',
+      shadowOpacity: 0.10,
+    },
   },
   dark: {
     bg: '#0A0A0F',
@@ -105,6 +128,18 @@ export const theme = {
     safeBadgeBg: 'rgba(34, 197, 94, 0.15)',
     soonBadgeBg: 'rgba(234, 179, 8, 0.15)',
     overdueBadgeBg: 'rgba(239, 68, 68, 0.15)',
+
+    // Glass morphism
+    glass: {
+      surface: 'rgba(28, 28, 40, 0.75)',
+      surfaceStrong: 'rgba(28, 28, 40, 0.92)',
+      border: 'rgba(255, 255, 255, 0.12)',
+      innerBorder: 'rgba(255, 255, 255, 0.06)',
+      blurTint: 'dark' as const,
+      blurIntensity: 70,
+      shadow: 'rgba(0, 0, 0, 0.40)',
+      shadowOpacity: 0.40,
+    },
   },
 } as const;
 
@@ -122,6 +157,17 @@ export function cardShadowStyle(isDark: boolean) {
     shadowOpacity: isDark ? 0.3 : 0.06,
     shadowRadius: 6,
     elevation: 2,
+  };
+}
+
+// Shadow utility for glass cards
+export function glassShadowStyle(isDark: boolean) {
+  return {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: isDark ? 0.4 : 0.1,
+    shadowRadius: 24,
+    elevation: 8,
   };
 }
 

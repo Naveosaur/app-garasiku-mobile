@@ -4,10 +4,11 @@ import { useColorScheme } from 'react-native';
 import React from 'react';
 import { Animated, Pressable, Text, View } from 'react-native';
 
-import { borderRadius, safe, soon, overdue, useAppTheme, cardShadowStyle } from '@/constants/theme';
+import { borderRadius, safe, soon, overdue, useAppTheme } from '@/constants/theme';
 import type { MaintenanceStatus, Vehicle } from '@/types';
 import { getVehicleWorstStatus } from '@/utils/maintenanceCalc';
 import { useVehicleStore } from '@/store/vehicleStore';
+import GlassCard from '@/components/ui/GlassCard';
 
 const rankStatus = (status: MaintenanceStatus['status']): number => {
   if (status === 'overdue') return 2;
@@ -87,16 +88,7 @@ export default function VehicleCard({ vehicle, statuses }: Props) {
         router.push(`/vehicle/${vehicle.id}`);
       }}
       style={{ width: 320, marginVertical: 4 }}>
-      <View
-        style={{
-          borderRadius: borderRadius.card,
-          padding: 14,
-          overflow: 'hidden',
-          backgroundColor: t.surface,
-          borderWidth: 1,
-          borderColor: t.border,
-          ...cardShadowStyle(isDark),
-        }}>
+      <GlassCard style={{ padding: 14 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <View>
             <Text style={{ color: t.text, fontSize: 16, fontWeight: '800' }} numberOfLines={1}>
@@ -173,7 +165,7 @@ export default function VehicleCard({ vehicle, statuses }: Props) {
             </Text>
           </View>
         </View>
-      </View>
+      </GlassCard>
     </Pressable>
   );
 }

@@ -1,8 +1,7 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { MaintenanceRecord } from '@/types';
+import * as maintenanceQueries from '@/db/maintenanceQueries';
 
 export type MaintenanceRecordInput = Omit<MaintenanceRecord, 'id'> & {
   id?: string;
@@ -13,53 +12,43 @@ type MaintenanceStore = {
   hydrated: boolean;
   setHydrated: (hydrated: boolean) => void;
 
-  addRecord: (record: MaintenanceRecordInput) => void;
-  deleteRecord: (id: string) => void;
+  loadRecords: () => Promise<void>;
+  addRecord: (record: MaintenanceRecordInput) => Promise<void>;
+  deleteRecord: (id: string) => Promise<void>;
   getRecordsForVehicle: (vehicleId: string) => MaintenanceRecord[];
 };
 
-export const useMaintenanceStore = create<MaintenanceStore>()(
-  persist(
-    (set, get) => ({
-      records: [],
-      hydrated: false,
-      setHydrated: (hydrated) => set({ hydrated }),
+export const useMaintenanceStore = create<MaintenanceStore>((set, get) => ({
+  records: [],
+  hydrated: false,
+  setHydrated: (hydrated) => set({ hydrated }),
 
-      addRecord: (record) => {
-        set((state) => ({
-          records: [
-            ...state.records,
-            {
-              ...record,
-              id: record.id ?? `${Date.now()}`,
-            },
-          ],
-        }));
-      },
+  loadRecords: async () => {
+    const records = await maintenanceQueries.getAllRecords();
+    set({ records, hydrated: true });
+  },
 
-      deleteRecord: (id) => {
-        set((state) => ({
-          records: state.records.filter((r) => r.id !== id),
-        }));
-      },
+  addRecord: async (record) => {
+    const finalRecord: MaintenanceRecord = {
+      ...record,
+      id: record.id ?? `${Date.now()}`,
+    };
+    await maintenanceQueries.insertRecord(finalRecord);
+    set((state) => ({
+      records: [finalRecord, ...state.records],
+    }));
+  },
 
-      getRecordsForVehicle: (vehicleId) => {
-        const records = get().records.filter((r) => r.vehicleId === vehicleId);
-        return records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      },
-    }),
-    {
-      name: 'maintenance-store',
-      storage: createJSONStorage(() => AsyncStorage),
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.setHydrated(true);
-        } else {
-          // No persisted data — still mark as hydrated so screens don't block.
-          useMaintenanceStore.setState({ hydrated: true });
-        }
-      },
-    },
-  ),
-);
+  deleteRecord: async (id) => {
+    await maintenanceQueries.deleteRecord(id);
+    set((state) => ({
+      records: state.records.filter((r) => r.id !== id),
+    }));
+  },
+
+  getRecordsForVehicle: (vehicleId) => {
+    const records = get().records.filter((r) => r.vehicleId === vehicleId);
+    return records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  },
+}));
 

@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, ScrollView, Text, TextInput, View, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 
 import { borderRadius, overdue, useAppTheme } from '@/constants/theme';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
@@ -110,7 +111,9 @@ export default function AddMaintenanceModalScreen() {
 
   if (!vehicleId || !vehicle) {
     return (
-      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, paddingTop: insets.top + 16, backgroundColor: t.bg }}>
+      <BlurView intensity={t.glass.blurIntensity} tint={t.glass.blurTint} style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: t.glass.surfaceStrong }}>
+          <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, paddingTop: insets.top + 16 }}>
         <Pressable
           onPress={() => router.back()}
           style={{
@@ -138,12 +141,16 @@ export default function AddMaintenanceModalScreen() {
           }}>
           <Text style={{ color: 'white', fontWeight: '700' }}>Go back</Text>
         </Pressable>
-      </ScrollView>
+          </ScrollView>
+        </View>
+      </BlurView>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, paddingTop: insets.top + 16, paddingBottom: 28, backgroundColor: t.bg }}>
+    <BlurView intensity={t.glass.blurIntensity} tint={t.glass.blurTint} style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: t.glass.surfaceStrong }}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, paddingTop: insets.top + 16, paddingBottom: 28 }}>
       {/* Header with Close Button */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Text style={{ fontSize: 18, fontWeight: '900', color: t.text }}>Add Service Record</Text>
@@ -289,7 +296,9 @@ export default function AddMaintenanceModalScreen() {
         }}>
         <Text style={{ color: 'white', fontWeight: '900' }}>Save Record ✓</Text>
       </Pressable>
-    </ScrollView>
+        </ScrollView>
+      </View>
+    </BlurView>
   );
 }
 

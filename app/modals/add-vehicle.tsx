@@ -5,6 +5,7 @@ import { Pressable, ScrollView, Text, TextInput, View, useColorScheme } from 're
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
+import { BlurView } from 'expo-blur';
 
 import { borderRadius, useAppTheme } from '@/constants/theme';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
@@ -84,7 +85,9 @@ export default function AddVehicleModalScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, paddingTop: insets.top + 16, paddingBottom: 28, backgroundColor: t.bg }}>
+    <BlurView intensity={t.glass.blurIntensity} tint={t.glass.blurTint} style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: t.glass.surfaceStrong }}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16, paddingTop: insets.top + 16, paddingBottom: 28 }}>
       {/* Header with Close Button */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <Text style={{ fontSize: 20, fontWeight: '900', color: t.text }}>Add Vehicle</Text>
@@ -277,6 +280,8 @@ export default function AddVehicleModalScreen() {
         }}>
         <Text style={{ color: 'white', fontWeight: '900', fontSize: 15 }}>Add Vehicle</Text>
       </Pressable>
-    </ScrollView>
+        </ScrollView>
+      </View>
+    </BlurView>
   );
 }

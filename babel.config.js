@@ -5,6 +5,15 @@ module.exports = function (api) {
     plugins: [
       // NativeWind uses Reanimated in some cases, so keep the official plugin enabled.
       'react-native-reanimated/plugin',
+      // Support TypeScript path aliases (@/*)
+      [
+        'module-resolver',
+        {
+          alias: {
+            '@': '.',
+          },
+        },
+      ],
     ],
   };
 };

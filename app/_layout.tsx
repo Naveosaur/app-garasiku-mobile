@@ -8,6 +8,9 @@ import React, { useEffect, useState } from 'react';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthStore } from '@/store/authStore';
+import { useVehicleStore } from '@/store/vehicleStore';
+import { useMaintenanceStore } from '@/store/maintenanceStore';
+import { initializeDatabase } from '@/db/database';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -25,7 +28,18 @@ export default function RootLayout() {
       try {
         const raw = await AsyncStorage.getItem('onboarding_done');
         setOnboardingDone(raw === 'true');
-      } catch {
+
+        // Initialize SQLite and load store data
+        await initializeDatabase();
+        await Promise.all([
+          useVehicleStore.getState().loadVehicles(),
+          useMaintenanceStore.getState().loadRecords(),
+        ]);
+      } catch (e) {
+        console.error('Boot error:', e);
+        // Graceful degradation — mark hydrated even on error
+        useVehicleStore.setState({ hydrated: true });
+        useMaintenanceStore.setState({ hydrated: true });
         setOnboardingDone(false);
       } finally {
         setBooting(false);
