@@ -1,12 +1,21 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Text, View, useColorScheme } from 'react-native';
+
+import { overdue, useAppTheme } from '@/constants/theme';
 
 type Props = {
   count: number;
   showDot?: boolean;
 };
 
+/**
+ * Tesla-inspired reminder badge
+ * Minimal with red accent for critical counts
+ */
 export default function ReminderBadge({ count, showDot }: Props) {
+  const t = useAppTheme();
+  const isDark = useColorScheme() === 'dark';
+
   if (!count && !showDot) return null;
 
   return (
@@ -18,11 +27,21 @@ export default function ReminderBadge({ count, showDot }: Props) {
             height: 18,
             paddingHorizontal: 5,
             borderRadius: 9,
-            backgroundColor: 'red',
+            backgroundColor: overdue,
             alignItems: 'center',
             justifyContent: 'center',
+            borderWidth: 2,
+            borderColor: t.bg,
           }}>
-          <Text style={{ color: 'white', fontSize: 11, fontWeight: '700' }}>{Math.min(99, count)}</Text>
+          <Text style={{ 
+            color: 'white', 
+            fontSize: 10, 
+            fontWeight: '800',
+            letterSpacing: 0.2,
+            fontVariant: ['tabular-nums'],
+          }}>
+            {Math.min(99, count)}
+          </Text>
         </View>
       ) : null}
 
@@ -35,11 +54,12 @@ export default function ReminderBadge({ count, showDot }: Props) {
             width: 10,
             height: 10,
             borderRadius: 999,
-            backgroundColor: '#10B981',
+            backgroundColor: t.text,
+            borderWidth: 2,
+            borderColor: t.bg,
           }}
         />
       ) : null}
     </View>
   );
 }
-

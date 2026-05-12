@@ -1,56 +1,88 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
 
-import type { LocalUser } from '@/types';
+import { apiClient, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/utils/apiClient';
 
-const AUTH_STORAGE_KEY = 'auth_user';
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+}
 
 type AuthStore = {
-  user: LocalUser | null;
+  user: AuthUser | null;
   hydrated: boolean;
 
   hydrate: () => Promise<void>;
-  login: (user: LocalUser) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  _forceLogout: () => void;
 };
 
-export const useAuthStore = create<AuthStore>()((set, get) => ({
+export const useAuthStore = create<AuthStore>()((set) => ({
   user: null,
   hydrated: false,
 
   hydrate: async () => {
-    if (get().hydrated) return;
     try {
-      const raw = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as LocalUser;
-        set({ user: parsed });
+      const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+      if (token) {
+        const { data } = await apiClient.get<{ success: boolean; data: AuthUser }>('/users/me');
+        set({ user: data.data });
       }
     } catch {
-      // ignore
+      // token invalid — interceptor handles clearing on 401
     } finally {
       set({ hydrated: true });
     }
   },
 
-  login: async (user) => {
-    // MVP: if AsyncStorage fails for any reason, still set in-memory auth
-    // so the app remains usable.
-    try {
-      await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-    } catch {
-      // ignore
-    }
-    set({ user });
+  login: async (email, password) => {
+    const { data } = await apiClient.post<{
+      success: boolean;
+      data: { user: AuthUser; accessToken: string; refreshToken: string };
+    }>('/auth/login', { email, password });
+
+    await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, data.data.accessToken);
+    await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, data.data.refreshToken);
+    set({ user: data.data.user });
+  },
+
+  register: async (name, email, password) => {
+    const { data } = await apiClient.post<{
+      success: boolean;
+      data: { user: AuthUser; accessToken: string; refreshToken: string };
+    }>('/auth/register', { name, email, password });
+
+    await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, data.data.accessToken);
+    await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, data.data.refreshToken);
+    
+    // Import and set hydrated for vehicle/maintenance stores
+    const { useVehicleStore } = await import('./vehicleStore');
+    const { useMaintenanceStore } = await import('./maintenanceStore');
+    useVehicleStore.setState({ hydrated: true, vehicles: [] });
+    useMaintenanceStore.setState({ hydrated: true, records: [] });
+    
+    set({ user: data.data.user });
   },
 
   logout: async () => {
     try {
-      await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+      const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+      if (refreshToken) {
+        await apiClient.post('/auth/logout', { refreshToken });
+      }
     } catch {
-      // ignore
+      // proceed even if server call fails
+    } finally {
+      await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+      await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+      set({ user: null });
     }
-    set({ user: null, hydrated: true });
+  },
+
+  _forceLogout: () => {
+    set({ user: null });
   },
 }));
-

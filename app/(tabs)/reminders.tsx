@@ -5,7 +5,10 @@ import React from 'react';
 import { Pressable, ScrollView, Text, View, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { borderRadius, overdue, safe, soon, useAppTheme, cardShadowStyle } from '@/constants/theme';
+import AmbientBackground from '@/components/ui/AmbientBackground';
+import AnimatedListItem from '@/components/ui/AnimatedListItem';
+import GlassCard from '@/components/ui/GlassCard';
+import { borderRadius, overdue, useAppTheme } from '@/constants/theme';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
 import { useVehicleStore } from '@/store/vehicleStore';
 import { getMaintenanceStatuses } from '@/utils/maintenanceCalc';
@@ -25,18 +28,13 @@ function timeAgo(ts: number) {
   return 'just now';
 }
 
-function typeIcon(type: MaintenanceType) {
+function typeIcon(type: MaintenanceType): keyof typeof MaterialIcons.glyphMap {
   switch (type) {
-    case 'oil_change':
-      return 'oil_barrel';
-    case 'brake_pads':
-      return 'build';
-    case 'battery':
-      return 'battery_charging_full';
-    case 'general_service':
-      return 'construction';
-    default:
-      return 'build';
+    case 'oil_change': return 'opacity';
+    case 'brake_pads': return 'build';
+    case 'battery': return 'battery-charging-full';
+    case 'general_service': return 'construction';
+    default: return 'build';
   }
 }
 
@@ -44,12 +42,6 @@ function typeLabel(type: MaintenanceType) {
   return type
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function statusColor(status: ServiceStatus) {
-  if (status === 'overdue') return overdue;
-  if (status === 'soon') return soon;
-  return safe;
 }
 
 type ReminderItem = {
@@ -63,11 +55,16 @@ type ReminderItem = {
   timeForDisplay: number;
 };
 
+/**
+ * Tesla-inspired Reminders Screen
+ * Minimal monochrome with critical-only accents
+ */
 export default function RemindersScreen() {
   const router = useRouter();
   const t = useAppTheme();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const insets = useSafeAreaInsets();
 
   const vehicles = useVehicleStore((s) => s.vehicles);
   const records = useMaintenanceStore((s) => s.records);
@@ -77,24 +74,21 @@ export default function RemindersScreen() {
   useFocusEffect(
     React.useCallback(() => {
       let mounted = true;
-      let clearTimeout: ReturnType<typeof setTimeout> | null = null;
 
       (async () => {
         const map = await getUnreadRemindersMap();
         if (mounted) setUnreadMap(map);
       })().catch(() => undefined);
 
-      // Clear unread state once the tab is opened.
       (async () => {
         await clearAllUnreadReminders().catch(() => undefined);
-        clearTimeout = setTimeout(() => {
+        setTimeout(() => {
           if (mounted) setUnreadMap({});
         }, 300);
       })().catch(() => undefined);
 
       return () => {
         mounted = false;
-        if (clearTimeout) clearTimeout = null;
       };
     }, []),
   );
@@ -139,185 +133,297 @@ export default function RemindersScreen() {
 
   const overdueItems = reminderItems.filter((i) => i.status === 'overdue');
   const soonItems = reminderItems.filter((i) => i.status === 'soon');
-  const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingTop: insets.top + 16, paddingBottom: 120, backgroundColor: t.bg }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <Text style={{ fontSize: 18, fontWeight: '900', color: t.text }}>Reminders</Text>
-        <Pressable
-          onPress={() => router.back()}
-          style={{
-            width: 42,
-            height: 42,
-            borderRadius: borderRadius.button,
-            backgroundColor: t.bgSecondary,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-          <MaterialIcons name="close" size={20} color={t.text} />
-        </Pressable>
-      </View>
+    <View style={{ flex: 1, backgroundColor: t.bg }}>
+      <AmbientBackground />
+      <ScrollView 
+        contentContainerStyle={{ padding: 20, paddingTop: insets.top + 24, paddingBottom: 140 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <AnimatedListItem index={0}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+            <View>
+              <Text style={{ 
+                fontSize: 11, 
+                fontWeight: '700', 
+                color: t.textSubtle, 
+                letterSpacing: 2,
+                marginBottom: 6,
+              }}>
+                ALERTS
+              </Text>
+              <Text style={{ 
+                fontSize: 32, 
+                fontWeight: '900', 
+                color: t.text, 
+                letterSpacing: -1.2,
+              }}>
+                Reminders
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => router.back()}
+              style={({ pressed }) => ({
+                width: 44,
+                height: 44,
+                borderRadius: 14,
+                backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 1,
+                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <MaterialIcons name="close" size={22} color={t.text} />
+            </Pressable>
+          </View>
+        </AnimatedListItem>
 
-      {overdueItems.length > 0 ? (
-        <View style={{ marginBottom: 18 }}>
-          <Text style={{ fontWeight: '900', marginBottom: 10, color: t.text }}>🚨 Action Required</Text>
-
-          {overdueItems.map((r) => {
-            const color = statusColor(r.status);
-            const isUnread = Boolean(unreadMap[r.key]);
-
-            return (
-              <Pressable
-                key={r.key}
-                onPress={() => router.push(`/vehicle/${r.vehicleId}`)}
-                style={{
-                  padding: 14,
-                  borderRadius: borderRadius.card,
-                  borderWidth: 1,
-                  borderColor: t.border,
-                  backgroundColor: t.surface,
-                  marginBottom: 10,
-                  ...cardShadowStyle(isDark),
+        {/* Overdue Section */}
+        {overdueItems.length > 0 && (
+          <AnimatedListItem index={1}>
+            <View style={{ marginBottom: 24 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                <View style={{ 
+                  width: 6, 
+                  height: 6, 
+                  borderRadius: 3, 
+                  backgroundColor: overdue,
+                }} />
+                <Text style={{ 
+                  fontSize: 11, 
+                  fontWeight: '700', 
+                  color: overdue, 
+                  letterSpacing: 2,
                 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-                  <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-                    <View
-                      style={{
-                        width: 38,
-                        height: 38,
-                        borderRadius: 12,
-                        backgroundColor: `${color}20`,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}>
-                      <MaterialIcons name={typeIcon(r.type) as any} size={18} color={color} />
-                    </View>
-                    <View>
-                      <Text style={{ fontWeight: '900', color: t.text }}>
-                        {typeLabel(r.type)} • {r.vehicleName}
-                      </Text>
-                      <Text style={{ color: t.textMuted, fontSize: 12, marginTop: 4 }}>
-                        {Math.abs(r.remainingKM).toLocaleString()} km overdue. Next at{' '}
-                        {r.nextServiceKM.toLocaleString()} km.
-                      </Text>
-                      <Text style={{ color: t.textSubtle, fontSize: 12, marginTop: 4 }}>
-                        {timeAgo(r.timeForDisplay)}
-                      </Text>
-                    </View>
-                  </View>
+                  ACTION REQUIRED · {overdueItems.length}
+                </Text>
+              </View>
 
-                  {isUnread ? (
-                    <View
-                      style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: 999,
-                        backgroundColor: t.brand,
-                        marginTop: 4,
-                      }}
-                    />
-                  ) : null}
-                </View>
-              </Pressable>
-            );
-          })}
+              <View style={{ gap: 10 }}>
+                {overdueItems.map((r, idx) => {
+                  const isUnread = Boolean(unreadMap[r.key]);
+                  return (
+                    <AnimatedListItem key={r.key} index={2 + idx}>
+                      <Pressable
+                        onPress={() => router.push(`/vehicle/${r.vehicleId}`)}
+                        style={({ pressed }) => ({ 
+                          opacity: pressed ? 0.8 : 1,
+                          transform: [{ scale: pressed ? 0.99 : 1 }],
+                        })}
+                      >
+                        <GlassCard style={{ padding: 18 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                            <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center', flex: 1 }}>
+                              <View
+                                style={{
+                                  width: 42,
+                                  height: 42,
+                                  borderRadius: 12,
+                                  backgroundColor: 'rgba(220, 38, 38, 0.12)',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  borderWidth: 1,
+                                  borderColor: 'rgba(220, 38, 38, 0.25)',
+                                }}
+                              >
+                                <MaterialIcons name={typeIcon(r.type)} size={20} color={overdue} />
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text style={{ 
+                                  fontWeight: '800', 
+                                  color: t.text,
+                                  fontSize: 15,
+                                  letterSpacing: -0.3,
+                                  marginBottom: 3,
+                                }}>
+                                  {typeLabel(r.type)}
+                                </Text>
+                                <Text style={{ 
+                                  color: t.textMuted, 
+                                  fontSize: 12,
+                                  fontWeight: '500',
+                                  marginBottom: 3,
+                                }}>
+                                  {r.vehicleName}
+                                </Text>
+                                <Text style={{ 
+                                  color: overdue, 
+                                  fontSize: 11,
+                                  fontWeight: '600',
+                                  letterSpacing: 0.3,
+                                }}>
+                                  {Math.abs(r.remainingKM).toLocaleString()} km overdue · {timeAgo(r.timeForDisplay)}
+                                </Text>
+                              </View>
+                            </View>
 
-          <Pressable
-            onPress={() => undefined}
-            style={{
-              height: 44,
-              borderRadius: borderRadius.button,
-              backgroundColor: t.brand,
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginTop: 8,
-            }}>
-            <Text style={{ color: 'white', fontWeight: '900' }}>Book Service Now</Text>
-          </Pressable>
-        </View>
-      ) : null}
+                            {isUnread && (
+                              <View
+                                style={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: 999,
+                                  backgroundColor: overdue,
+                                  marginTop: 4,
+                                }}
+                              />
+                            )}
+                          </View>
+                        </GlassCard>
+                      </Pressable>
+                    </AnimatedListItem>
+                  );
+                })}
+              </View>
+            </View>
+          </AnimatedListItem>
+        )}
 
-      {soonItems.length > 0 ? (
-        <View style={{ marginBottom: 18 }}>
-          <Text style={{ fontWeight: '900', marginBottom: 10, color: t.text }}>⚠️ Due Soon</Text>
-
-          {soonItems.map((r) => {
-            const color = statusColor(r.status);
-            const isUnread = Boolean(unreadMap[r.key]);
-
-            return (
-              <Pressable
-                key={r.key}
-                onPress={() => router.push(`/vehicle/${r.vehicleId}`)}
-                style={{
-                  padding: 14,
-                  borderRadius: borderRadius.card,
-                  borderWidth: 1,
-                  borderColor: '#E2E8F0',
-                  backgroundColor: 'white',
-                  marginBottom: 10,
+        {/* Due Soon Section */}
+        {soonItems.length > 0 && (
+          <AnimatedListItem index={overdueItems.length + 2}>
+            <View style={{ marginBottom: 24 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                <View style={{ 
+                  width: 6, 
+                  height: 6, 
+                  borderRadius: 3, 
+                  backgroundColor: t.textMuted,
+                }} />
+                <Text style={{ 
+                  fontSize: 11, 
+                  fontWeight: '700', 
+                  color: t.textMuted, 
+                  letterSpacing: 2,
                 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-                  <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-                    <View
-                      style={{
-                        width: 38,
-                        height: 38,
-                        borderRadius: 12,
-                        backgroundColor: `${color}20`,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}>
-                      <MaterialIcons name={typeIcon(r.type) as any} size={18} color={color} />
-                    </View>
-                    <View>
-                      <Text style={{ fontWeight: '900' }}>
-                        {typeLabel(r.type)} • {r.vehicleName}
-                      </Text>
-                      <Text style={{ color: '#64748B', fontSize: 12, marginTop: 4 }}>
-                        {Math.max(0, r.remainingKM).toLocaleString()} km left. Next at{' '}
-                        {r.nextServiceKM.toLocaleString()} km.
-                      </Text>
-                      <Text style={{ color: '#94A3B8', fontSize: 12, marginTop: 4 }}>
-                        {timeAgo(r.timeForDisplay)}
-                      </Text>
-                    </View>
-                  </View>
+                  DUE SOON · {soonItems.length}
+                </Text>
+              </View>
 
-                  {isUnread ? (
-                    <View
-                      style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: 999,
-                        backgroundColor: t.brand,
-                        marginTop: 4,
-                      }}
-                    />
-                  ) : null}
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
-      ) : null}
+              <View style={{ gap: 10 }}>
+                {soonItems.map((r, idx) => {
+                  const isUnread = Boolean(unreadMap[r.key]);
+                  return (
+                    <AnimatedListItem key={r.key} index={3 + overdueItems.length + idx}>
+                      <Pressable
+                        onPress={() => router.push(`/vehicle/${r.vehicleId}`)}
+                        style={({ pressed }) => ({ 
+                          opacity: pressed ? 0.8 : 1,
+                          transform: [{ scale: pressed ? 0.99 : 1 }],
+                        })}
+                      >
+                        <GlassCard style={{ padding: 18 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                            <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center', flex: 1 }}>
+                              <View
+                                style={{
+                                  width: 42,
+                                  height: 42,
+                                  borderRadius: 12,
+                                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  borderWidth: 1,
+                                  borderColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)',
+                                }}
+                              >
+                                <MaterialIcons name={typeIcon(r.type)} size={20} color={t.text} />
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text style={{ 
+                                  fontWeight: '800', 
+                                  color: t.text,
+                                  fontSize: 15,
+                                  letterSpacing: -0.3,
+                                  marginBottom: 3,
+                                }}>
+                                  {typeLabel(r.type)}
+                                </Text>
+                                <Text style={{ 
+                                  color: t.textMuted, 
+                                  fontSize: 12,
+                                  fontWeight: '500',
+                                  marginBottom: 3,
+                                }}>
+                                  {r.vehicleName}
+                                </Text>
+                                <Text style={{ 
+                                  color: t.textMuted, 
+                                  fontSize: 11,
+                                  fontWeight: '600',
+                                  letterSpacing: 0.3,
+                                }}>
+                                  {Math.max(0, r.remainingKM).toLocaleString()} km left · {timeAgo(r.timeForDisplay)}
+                                </Text>
+                              </View>
+                            </View>
 
-      {overdueItems.length === 0 && soonItems.length === 0 ? (
-        <View
-          style={{
-            padding: 14,
-            borderRadius: borderRadius.card,
-            borderWidth: 1,
-            borderColor: t.border,
-            backgroundColor: t.surface,
-            ...cardShadowStyle(isDark),
-          }}>
-          <Text style={{ fontWeight: '900', marginBottom: 6, color: t.text }}>✅ All Good</Text>
-          <Text style={{ color: t.textMuted, fontSize: 12 }}>No upcoming services yet.</Text>
-        </View>
-      ) : null}
-    </ScrollView>
+                            {isUnread && (
+                              <View
+                                style={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: 999,
+                                  backgroundColor: t.text,
+                                  marginTop: 4,
+                                }}
+                              />
+                            )}
+                          </View>
+                        </GlassCard>
+                      </Pressable>
+                    </AnimatedListItem>
+                  );
+                })}
+              </View>
+            </View>
+          </AnimatedListItem>
+        )}
+
+        {/* Empty State */}
+        {overdueItems.length === 0 && soonItems.length === 0 && (
+          <AnimatedListItem index={1}>
+            <GlassCard style={{ padding: 32, alignItems: 'center' }}>
+              <View
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 20,
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)',
+                  marginBottom: 16,
+                }}
+              >
+                <MaterialIcons name="check" size={32} color={t.text} />
+              </View>
+              <Text style={{ 
+                fontWeight: '800', 
+                marginBottom: 6, 
+                color: t.text,
+                fontSize: 18,
+                letterSpacing: -0.5,
+              }}>
+                All Clear
+              </Text>
+              <Text style={{ 
+                color: t.textMuted, 
+                fontSize: 13,
+                textAlign: 'center',
+                fontWeight: '500',
+              }}>
+                No pending maintenance reminders
+              </Text>
+            </GlassCard>
+          </AnimatedListItem>
+        )}
+      </ScrollView>
+    </View>
   );
 }
-

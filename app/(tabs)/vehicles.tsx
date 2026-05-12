@@ -1,27 +1,19 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useColorScheme } from 'react-native';
-import React from 'react';
-import { Alert, FlatList, Pressable, ScrollView, Text, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, Text, View, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { borderRadius, useAppTheme, safe, soon, overdue, cardShadowStyle } from '@/constants/theme';
+import AmbientBackground from '@/components/ui/AmbientBackground';
+import GlassCard from '@/components/ui/GlassCard';
+import { borderRadius, overdue, useAppTheme } from '@/constants/theme';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
 import { useVehicleStore } from '@/store/vehicleStore';
-import { cancelAllRemindersForVehicle } from '@/utils/notifications';
 import { getMaintenanceStatuses, getVehicleWorstStatus } from '@/utils/maintenanceCalc';
-
-const statusColor = (status: 'safe' | 'soon' | 'overdue') => {
-  if (status === 'overdue') return overdue;
-  if (status === 'soon') return soon;
-  return safe;
-};
 
 export default function VehiclesScreen() {
   const router = useRouter();
   const t = useAppTheme();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
 
   const vehicles = useVehicleStore((s) => s.vehicles);
@@ -29,158 +21,223 @@ export default function VehiclesScreen() {
   const records = useMaintenanceStore((s) => s.records);
   const hydratedMaintenance = useMaintenanceStore((s) => s.hydrated);
   const setRecentVehicle = useVehicleStore((s) => s.setRecentVehicle);
-  const deleteVehicle = useVehicleStore((s) => s.deleteVehicle);
 
   if (!hydratedVehicles || !hydratedMaintenance) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top, backgroundColor: t.bg }}>
-        <Text>Loading...</Text>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg }}>
+        <Text style={{ color: t.textMuted, fontSize: 13, letterSpacing: 1 }}>LOADING</Text>
       </View>
-    );
-  }
-
-  if (vehicles.length === 0) {
-    return (
-      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24, paddingTop: insets.top + 24, backgroundColor: t.bg }}>
-        <View style={{ alignItems: 'center' }}>
-          <Text style={{ fontSize: 70, marginBottom: 16 }}>🏍️</Text>
-          <Text style={{ fontSize: 20, fontWeight: '600', textAlign: 'center', marginBottom: 8, color: t.text }}>
-            Add Your First Vehicle
-          </Text>
-          <Text style={{ color: t.textMuted, textAlign: 'center', marginBottom: 22 }}>
-            Track KM and never miss a service again
-          </Text>
-          <Pressable
-            onPress={() => router.push('/modals/add-vehicle')}
-            style={{
-              height: 44,
-              paddingHorizontal: 18,
-              borderRadius: borderRadius.button,
-              backgroundColor: t.brand,
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: 220,
-            }}>
-            <Text style={{ color: 'white', fontWeight: '700' }}>Add Vehicle</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
     );
   }
 
   return (
-    <View style={{ flex: 1, paddingTop: insets.top + 16, paddingHorizontal: 16, paddingBottom: 16, backgroundColor: t.bg }}>
-      <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Text style={{ fontSize: 18, fontWeight: '900', color: t.text }}>Vehicles</Text>
-        <Pressable
-          onPress={() => router.push('/modals/add-vehicle')}
-          style={{
-            height: 44,
-            width: 44,
-            borderRadius: borderRadius.button,
-            backgroundColor: t.brand,
-            alignItems: 'center',
-            justifyContent: 'center',
+    <View style={{ flex: 1, backgroundColor: t.bg }}>
+      <AmbientBackground />
+
+      {/* Fixed Header */}
+      <View style={{
+        paddingTop: insets.top + 24,
+        paddingHorizontal: 20,
+        paddingBottom: 16,
+        backgroundColor: 'transparent',
+      }}>
+        <View>
+          <Text style={{
+            fontSize: 11,
+            fontWeight: '700',
+            color: t.textSubtle,
+            letterSpacing: 2,
+            marginBottom: 4,
           }}>
-          <MaterialIcons name="add" size={22} color="white" />
-        </Pressable>
+            FLEET
+          </Text>
+          <Text style={{
+            fontSize: 32,
+            fontWeight: '900',
+            color: t.text,
+            letterSpacing: -1.2,
+          }}>
+            Vehicles
+          </Text>
+        </View>
       </View>
 
-      <FlatList
-        data={vehicles}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        renderItem={({ item }) => {
-          const statuses = getMaintenanceStatuses(item, records);
-          const worst = getVehicleWorstStatus(statuses);
-          const badgeText = worst === 'overdue' ? 'OVERDUE' : worst === 'soon' ? 'SERVICE SOON' : 'SAFE';
-          const badgeBg =
-            worst === 'overdue' ? t.overdueBadgeBg : worst === 'soon' ? t.soonBadgeBg : t.safeBadgeBg;
-          const badgeColor = statusColor(worst);
-
-          return (
-            <View
-              style={{
-                borderRadius: borderRadius.card,
-                padding: 14,
-                overflow: 'hidden',
-                backgroundColor: t.surface,
-                borderWidth: 1,
-                borderColor: t.border,
-                ...cardShadowStyle(isDark),
-              }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ color: t.text, fontWeight: '900', fontSize: 16 }} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  <Text style={{ color: t.textMuted, marginTop: 4 }} numberOfLines={1}>
-                    {item.plate}
-                  </Text>
-                  <View
-                    style={{
-                      marginTop: 10,
-                      paddingVertical: 6,
-                      paddingHorizontal: 8,
-                      borderRadius: 12,
-                      backgroundColor: badgeBg,
-                      alignSelf: 'flex-start',
-                    }}>
-                    <Text style={{ color: badgeColor, fontSize: 11, fontWeight: '900' }}>
-                      {badgeText}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={{ alignItems: 'flex-end', gap: 10 }}>
-                  <Pressable
-                    onPress={() => {
-                      setRecentVehicle(item.id);
-                      router.push(`/vehicle/${item.id}`);
-                    }}
-                    style={{
-                      height: 44,
-                      width: 44,
-                      borderRadius: 14,
-                      backgroundColor: t.bgSecondary,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    <MaterialIcons name="chevron-right" size={22} color={t.text} />
-                  </Pressable>
-
-                  <Pressable
-                    onPress={() => {
-                      Alert.alert('Delete vehicle?', 'This will remove the vehicle and its history.', [
-                        { text: 'Cancel', style: 'cancel' },
-                        {
-                          text: 'Delete',
-                          style: 'destructive',
-                          onPress: async () => {
-                            await cancelAllRemindersForVehicle(item.id);
-                            deleteVehicle(item.id);
-                          },
-                        },
-                      ]);
-                    }}
-                    style={{
-                      height: 44,
-                      width: 44,
-                      borderRadius: 14,
-                      backgroundColor: t.bgSecondary,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    <MaterialIcons name="delete" size={20} color={overdue} />
-                  </Pressable>
-                </View>
-              </View>
+      {/* Content */}
+      {vehicles.length === 0 ? (
+        <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
+          <View style={{ alignItems: 'center' }}>
+            <View style={{
+              width: 88,
+              height: 88,
+              borderRadius: 26,
+              backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 24,
+              borderWidth: 1,
+              borderColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)',
+            }}>
+              <MaterialIcons name="directions-car" size={40} color={t.text} />
             </View>
-          );
-        }}
-      />
+            <Text style={{
+              fontSize: 24,
+              fontWeight: '900',
+              textAlign: 'center',
+              marginBottom: 10,
+              color: t.text,
+              letterSpacing: -0.8,
+            }}>
+              No Vehicles Yet
+            </Text>
+            <Text style={{
+              color: t.textMuted,
+              textAlign: 'center',
+              marginBottom: 32,
+              lineHeight: 24,
+              fontSize: 15,
+            }}>
+              Tap ADD above to add your first vehicle
+            </Text>
+          </View>
+        </ScrollView>
+      ) : (
+        <FlatList
+          data={vehicles}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingBottom: 140, gap: 12 }}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={<View style={{ height: 0 }} />}
+          ListFooterComponent={
+            <View style={{ paddingHorizontal: 20, marginTop: 4 }}>
+              <Pressable
+                onPress={() => router.push('/modals/add-vehicle')}
+                style={({ pressed }) => ({
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: 56,
+                  borderRadius: borderRadius.card,
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)',
+                  gap: 10,
+                  opacity: pressed ? 0.7 : 1,
+                  transform: [{ scale: pressed ? 0.99 : 1 }],
+                })}
+              >
+                <View style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 8,
+                  backgroundColor: t.brand,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <MaterialIcons name="add" size={18} color={isDark ? '#000000' : '#FFFFFF'} />
+                </View>
+                <Text style={{
+                  color: t.text,
+                  fontWeight: '700',
+                  fontSize: 14,
+                  letterSpacing: -0.2,
+                }}>
+                  Add Vehicle
+                </Text>
+              </Pressable>
+            </View>
+          }
+          renderItem={({ item }) => {
+            const statuses = getMaintenanceStatuses(item, records);
+            const worst = getVehicleWorstStatus(statuses);
+
+            let badgeText = 'SAFE';
+            let badgeBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+            let badgeFg = t.textMuted;
+            let badgeBorder = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)';
+
+            if (worst === 'overdue') {
+              badgeText = 'OVERDUE';
+              badgeBg = isDark ? 'rgba(220,38,38,0.15)' : 'rgba(220,38,38,0.08)';
+              badgeFg = overdue;
+              badgeBorder = isDark ? 'rgba(220,38,38,0.30)' : 'rgba(220,38,38,0.20)';
+            } else if (worst === 'soon') {
+              badgeText = 'DUE SOON';
+              badgeBg = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)';
+              badgeFg = t.text;
+              badgeBorder = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)';
+            }
+
+            return (
+              <Pressable
+                onPress={() => {
+                  setRecentVehicle(item.id);
+                  router.push(`/vehicle/${item.id}`);
+                }}
+                style={({ pressed }) => ({
+                  paddingHorizontal: 20,
+                  opacity: pressed ? 0.85 : 1,
+                  transform: [{ scale: pressed ? 0.99 : 1 }],
+                })}
+              >
+                <GlassCard style={{ padding: 20 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{
+                        color: t.text,
+                        fontWeight: '800',
+                        fontSize: 18,
+                        letterSpacing: -0.5,
+                        marginBottom: 4,
+                      }} numberOfLines={1}>
+                        {item.name}
+                      </Text>
+                      <Text style={{
+                        color: t.textMuted,
+                        fontSize: 13,
+                        fontWeight: '500',
+                        marginBottom: 12,
+                        fontVariant: ['tabular-nums'],
+                      }} numberOfLines={1}>
+                        {item.plate} · {item.currentKM.toLocaleString()} KM
+                      </Text>
+                      <View style={{
+                        paddingVertical: 5,
+                        paddingHorizontal: 10,
+                        borderRadius: 999,
+                        backgroundColor: badgeBg,
+                        alignSelf: 'flex-start',
+                        borderWidth: 1,
+                        borderColor: badgeBorder,
+                      }}>
+                        <Text style={{
+                          color: badgeFg,
+                          fontSize: 10,
+                          fontWeight: '700',
+                          letterSpacing: 1.2,
+                        }}>
+                          {badgeText}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 12,
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderWidth: 1,
+                      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                    }}>
+                      <MaterialIcons name="chevron-right" size={22} color={t.textMuted} />
+                    </View>
+                  </View>
+                </GlassCard>
+              </Pressable>
+            );
+          }}
+        />
+      )}
     </View>
   );
 }
-

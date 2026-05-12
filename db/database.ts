@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 let database: SQLite.SQLiteDatabase | null = null;
 
@@ -49,7 +49,7 @@ export async function initializeDatabase() {
 
   // Check migration status
   try {
-    const result = await db.getFirstAsync('SELECT value FROM db_meta WHERE key = ?', ['async_migrated']);
+    const result = await db.getFirstAsync('SELECT value FROM db_meta WHERE key = ?', ['secure_migrated']);
     if (result) {
       return; // Already migrated
     }
@@ -57,10 +57,10 @@ export async function initializeDatabase() {
     // Table exists but no rows — continue to migration
   }
 
-  // Migrate from AsyncStorage
+  // Migrate from SecureStore (legacy data from AsyncStorage)
   try {
-    const vehicleStoreJson = await AsyncStorage.getItem('vehicle-store');
-    const maintenanceStoreJson = await AsyncStorage.getItem('maintenance-store');
+    const vehicleStoreJson = await SecureStore.getItemAsync('vehicle-store');
+    const maintenanceStoreJson = await SecureStore.getItemAsync('maintenance-store');
 
     if (vehicleStoreJson) {
       const vehicleStore = JSON.parse(vehicleStoreJson);
@@ -97,12 +97,12 @@ export async function initializeDatabase() {
     }
 
     // Mark migration complete
-    await db.runAsync('INSERT INTO db_meta (key, value) VALUES (?, ?)', ['async_migrated', 'true']);
+    await db.runAsync('INSERT INTO db_meta (key, value) VALUES (?, ?)', ['secure_migrated', 'true']);
   } catch (e) {
-    console.error('AsyncStorage migration failed:', e);
+    console.error('SecureStore migration failed:', e);
     // Still mark as migrated to avoid infinite retry loop
     try {
-      await db.runAsync('INSERT INTO db_meta (key, value) VALUES (?, ?)', ['async_migrated', 'true']);
+      await db.runAsync('INSERT INTO db_meta (key, value) VALUES (?, ?)', ['secure_migrated', 'true']);
     } catch {
       // db_meta insert also failed — give up gracefully
     }

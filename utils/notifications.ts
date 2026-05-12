@@ -1,5 +1,5 @@
 import * as Notifications from 'expo-notifications';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 import type { MaintenanceStatus, Vehicle } from '@/types';
 
@@ -37,7 +37,7 @@ async function ensureNotificationSetup() {
 
 async function readIdentifierMap(): Promise<Record<string, string>> {
   try {
-    const raw = await AsyncStorage.getItem(IDENTIFIERS_KEY);
+    const raw = await SecureStore.getItemAsync(IDENTIFIERS_KEY);
     if (!raw) return {};
     return JSON.parse(raw) as Record<string, string>;
   } catch {
@@ -46,12 +46,12 @@ async function readIdentifierMap(): Promise<Record<string, string>> {
 }
 
 async function writeIdentifierMap(map: Record<string, string>) {
-  await AsyncStorage.setItem(IDENTIFIERS_KEY, JSON.stringify(map));
+  await SecureStore.setItemAsync(IDENTIFIERS_KEY, JSON.stringify(map)).catch(() => undefined);
 }
 
 async function readUnreadRemindersMap(): Promise<Record<string, number>> {
   try {
-    const raw = await AsyncStorage.getItem(UNREAD_REMINDERS_KEY);
+    const raw = await SecureStore.getItemAsync(UNREAD_REMINDERS_KEY);
     if (!raw) return {};
     return JSON.parse(raw) as Record<string, number>;
   } catch {
@@ -60,7 +60,7 @@ async function readUnreadRemindersMap(): Promise<Record<string, number>> {
 }
 
 async function writeUnreadRemindersMap(map: Record<string, number>) {
-  await AsyncStorage.setItem(UNREAD_REMINDERS_KEY, JSON.stringify(map));
+  await SecureStore.setItemAsync(UNREAD_REMINDERS_KEY, JSON.stringify(map)).catch(() => undefined);
 }
 
 export async function cancelAllRemindersForVehicle(vehicleId: string) {
@@ -123,6 +123,6 @@ export async function getUnreadRemindersMap(): Promise<Record<string, number>> {
 }
 
 export async function clearAllUnreadReminders() {
-  await AsyncStorage.removeItem(UNREAD_REMINDERS_KEY).catch(() => undefined);
+  await SecureStore.deleteItemAsync(UNREAD_REMINDERS_KEY).catch(() => undefined);
 }
 

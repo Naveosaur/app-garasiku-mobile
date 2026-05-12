@@ -1,55 +1,66 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, ScrollView, Text, TextInput, View, useColorScheme } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, TextInput, View, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AmbientBackground from '@/components/ui/AmbientBackground';
 import AnimatedListItem from '@/components/ui/AnimatedListItem';
-import GlassCard from '@/components/ui/GlassCard';
-import { borderRadius, overdue, safe, useAppTheme } from '@/constants/theme';
+import { borderRadius, overdue, useAppTheme } from '@/constants/theme';
 import { useAuthStore } from '@/store/authStore';
 
 /**
- * Tesla-inspired Change Email Screen
+ * Tesla-inspired Change Name Screen
  */
-export default function ChangeEmailScreen() {
+export default function ChangeNameScreen() {
   const router = useRouter();
   const t = useAppTheme();
   const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
 
   const user = useAuthStore((s) => s.user);
-  const currentEmail = user?.email ?? '';
+  const currentName = user?.name ?? '';
 
-  const [emailDraft, setEmailDraft] = React.useState(currentEmail);
+  const [nameDraft, setNameDraft] = React.useState(currentName);
   const [error, setError] = React.useState<string | null>(null);
-  const [success, setSuccess] = React.useState(false);
-  const [emailFocused, setEmailFocused] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [nameFocused, setNameFocused] = React.useState(false);
 
   async function onSave() {
     try {
       setError(null);
-      setSuccess(false);
-
-      const emailTrimmed = emailDraft.trim();
-      if (!emailTrimmed) return setError('Email cannot be empty');
-      if (emailTrimmed === currentEmail) return setError('Email is the same as before');
+      const trimmed = nameDraft.trim();
+      
+      if (!trimmed) return setError('Name cannot be empty');
+      if (trimmed === currentName) return setError('Name is the same as before');
+      if (trimmed.length < 2) return setError('Name must be at least 2 characters');
 
       if (user) {
         try {
+          setLoading(true);
           const { apiClient } = await import('@/utils/apiClient');
-          await apiClient.patch('/users/me', { name: user.name });
-          setSuccess(true);
-          setTimeout(() => router.back(), 1000);
+          const { data } = await apiClient.patch<{ 
+            success: boolean; 
+            data: { id: string; name: string; email: string };
+          }>('/users/me', { name: trimmed });
+          useAuthStore.setState({ user: data.data });
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+          router.back();
         } catch {
-          setError('Failed to update email. Please try again.');
+          setError('Failed to update name. Please try again.');
+          Alert.alert('Error', 'Failed to update name');
+        } finally {
+          setLoading(false);
         }
       }
     } catch {
-      setError('Failed to update email. Please try again.');
+      setError('Failed to update name. Please try again.');
+      setLoading(false);
     }
   }
+
+  const isValid = nameDraft.trim().length >= 2 && nameDraft.trim() !== currentName;
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
@@ -77,7 +88,7 @@ export default function ChangeEmailScreen() {
                 color: t.text, 
                 letterSpacing: -1.2,
               }}>
-                Change Email
+                Change Name
               </Text>
             </View>
             <Pressable
@@ -98,7 +109,7 @@ export default function ChangeEmailScreen() {
           </View>
         </AnimatedListItem>
 
-        {/* Current Email */}
+        {/* Current Name */}
         <AnimatedListItem index={1}>
           <Text style={{ 
             fontWeight: '700', 
@@ -107,24 +118,32 @@ export default function ChangeEmailScreen() {
             fontSize: 11,
             letterSpacing: 1.5,
           }}>
-            CURRENT EMAIL
+            CURRENT NAME
           </Text>
-          <GlassCard style={{ padding: 16, marginBottom: 24 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <MaterialIcons name="mail-outline" size={18} color={t.textMuted} />
-              <Text style={{ 
-                color: t.textMuted, 
-                fontSize: 15,
-                fontWeight: '500',
-                letterSpacing: -0.2,
-              }}>
-                {currentEmail}
-              </Text>
-            </View>
-          </GlassCard>
+          <View
+            style={{
+              height: 56,
+              borderRadius: borderRadius.input,
+              borderWidth: 1,
+              borderColor: t.inputBorder,
+              paddingHorizontal: 18,
+              backgroundColor: t.inputBg,
+              justifyContent: 'center',
+              marginBottom: 24,
+            }}
+          >
+            <Text style={{ 
+              color: t.textMuted, 
+              fontSize: 15,
+              fontWeight: '500',
+              letterSpacing: -0.2,
+            }}>
+              {currentName || 'Not set'}
+            </Text>
+          </View>
         </AnimatedListItem>
 
-        {/* New Email Input */}
+        {/* New Name Input */}
         <AnimatedListItem index={2}>
           <Text style={{ 
             fontWeight: '700', 
@@ -133,23 +152,23 @@ export default function ChangeEmailScreen() {
             fontSize: 11,
             letterSpacing: 1.5,
           }}>
-            NEW EMAIL
+            NEW NAME
           </Text>
           <TextInput
-            value={emailDraft}
-            onChangeText={setEmailDraft}
-            onFocus={() => setEmailFocused(true)}
-            onBlur={() => setEmailFocused(false)}
-            placeholder="Enter your new email"
+            value={nameDraft}
+            onChangeText={setNameDraft}
+            onFocus={() => setNameFocused(true)}
+            onBlur={() => setNameFocused(false)}
+            placeholder="Enter your full name"
             placeholderTextColor={t.textSubtle}
-            keyboardType="email-address"
-            autoCapitalize="none"
+            autoCapitalize="words"
+            autoComplete="name"
             autoFocus
             style={{
               height: 56,
               borderRadius: borderRadius.input,
               borderWidth: 1,
-              borderColor: emailFocused ? t.brand : t.inputBorder,
+              borderColor: nameFocused ? t.brand : t.inputBorder,
               paddingHorizontal: 18,
               marginBottom: 20,
               backgroundColor: t.inputBg,
@@ -183,45 +202,15 @@ export default function ChangeEmailScreen() {
           </AnimatedListItem>
         ) : null}
 
-        {/* Success Message */}
-        {success ? (
-          <AnimatedListItem index={3}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 10,
-                backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                borderRadius: 12,
-                padding: 14,
-                marginBottom: 16,
-                borderWidth: 1,
-                borderColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)',
-              }}
-            >
-              <MaterialIcons name="check" size={18} color={t.text} />
-              <Text style={{ 
-                color: t.text, 
-                fontWeight: '600', 
-                fontSize: 13, 
-                flex: 1,
-                letterSpacing: -0.2,
-              }}>
-                Email updated successfully
-              </Text>
-            </View>
-          </AnimatedListItem>
-        ) : null}
-
         {/* Save Button */}
         <AnimatedListItem index={4}>
           <Pressable
             onPress={onSave}
-            disabled={!emailDraft.trim() || emailDraft.trim() === currentEmail}
+            disabled={!isValid || loading}
             style={({ pressed }) => ({
               borderRadius: borderRadius.button,
               overflow: 'hidden',
-              opacity: (!emailDraft.trim() || emailDraft.trim() === currentEmail) ? 0.5 : (pressed ? 0.95 : 1),
+              opacity: (!isValid || loading) ? 0.5 : (pressed ? 0.95 : 1),
               transform: [{ scale: pressed ? 0.98 : 1 }],
               marginTop: 8,
               shadowColor: isDark ? '#FFFFFF' : '#000000',
@@ -242,7 +231,7 @@ export default function ChangeEmailScreen() {
                 fontSize: 15,
                 letterSpacing: 1,
               }}>
-                SAVE EMAIL
+                {loading ? 'SAVING...' : 'SAVE NAME'}
               </Text>
             </View>
           </Pressable>
