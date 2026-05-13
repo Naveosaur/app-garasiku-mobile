@@ -8,30 +8,46 @@ export type MaintenanceType =
 
 export type ServiceStatus = 'safe' | 'soon' | 'overdue';
 
+// Dynamic service type from backend
+export interface ServiceType {
+  id: string;
+  name: string;
+  intervalKM: number;
+  vehicleType: VehicleType;
+  icon: string;
+  isDefault: boolean;
+  userId: string | null;
+}
+
 export interface Vehicle {
   id: string;
-  name: string; // Display name for the vehicle, e.g. "My Honda"
-  brand: string; // Brand, e.g. "Honda"
-  model: string; // Model, e.g. "Beat"
-  plate: string; // e.g. "B 1234 ABC"
+  name: string;
+  brand: string;
+  model: string;
+  plate: string;
   type: VehicleType;
   year: number;
   currentKM: number;
-  createdAt: string; // ISO date
-  updatedAt: string; // ISO date
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface MaintenanceRecord {
   id: string;
   vehicleId: string;
   type: MaintenanceType;
+  serviceTypeId?: string;
   serviceKM: number;
-  date: string; // ISO date
+  date: string;
   notes?: string;
 }
 
+// Updated to support both legacy and dynamic service types
 export interface MaintenanceStatus {
   type: MaintenanceType;
+  serviceTypeId?: string;
+  serviceTypeName: string;
+  serviceTypeIcon?: string;
   lastServiceKM: number;
   nextServiceKM: number;
   remainingKM: number;
@@ -40,7 +56,6 @@ export interface MaintenanceStatus {
   lastRecord?: MaintenanceRecord;
 }
 
-// Local (MVP) auth payload only. No backend is used.
 export interface LocalUser {
   name: string;
   email: string;

@@ -10,6 +10,7 @@ import GlassCard from '@/components/ui/GlassCard';
 import MaintenanceProgressRow from '@/components/MaintenanceProgressRow';
 import { borderRadius, overdue, useAppTheme } from '@/constants/theme';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
+import { useServiceTypeStore } from '@/store/serviceTypeStore';
 import { useVehicleStore } from '@/store/vehicleStore';
 import type { MaintenanceStatus } from '@/types';
 import { getMaintenanceStatuses, getVehicleWorstStatus } from '@/utils/maintenanceCalc';
@@ -50,10 +51,21 @@ export default function VehicleDetailScreen() {
     if (vehicleId) setRecentVehicle(vehicleId);
   }, [setRecentVehicle, vehicleId]);
 
+  // Fetch service types for this vehicle's type
+  const { catalogue, fetchCatalogue } = useServiceTypeStore();
+  const serviceTypes = vehicle ? (catalogue[vehicle.type] ?? []) : [];
+
+  React.useEffect(() => {
+    if (vehicle?.type) {
+      fetchCatalogue(vehicle.type).catch(() => undefined);
+    }
+  }, [vehicle?.type]);
+
   const statuses = React.useMemo(() => {
     if (!vehicle) return [];
-    return getMaintenanceStatuses(vehicle, records);
-  }, [records, vehicle]);
+    // Use dynamic service types if available, else fallback to legacy
+    return getMaintenanceStatuses(vehicle, records, serviceTypes.length > 0 ? serviceTypes : undefined);
+  }, [records, vehicle, serviceTypes]);
 
   const worstStatus = React.useMemo(() => getVehicleWorstStatus(statuses), [statuses]);
 
@@ -467,7 +479,11 @@ export default function VehicleDetailScreen() {
 
           <View style={{ gap: 10, marginBottom: 28 }}>
             {statuses.map((s: MaintenanceStatus, i) => (
-              <MaintenanceProgressRow key={s.type} status={s} index={i + 2} />
+              <MaintenanceProgressRow
+                key={s.serviceTypeId ?? `${s.type}-${i}`}
+                status={s}
+                index={i + 2}
+              />
             ))}
           </View>
 

@@ -18,18 +18,30 @@ type Props = Readonly<{
   index?: number;
 }>;
 
-function typeLabel(type: MaintenanceStatus['type']) {
-  switch (type) {
+function typeLabel(status: MaintenanceStatus): string {
+  // Use dynamic name if available, else fallback to legacy
+  if (status.serviceTypeName) return status.serviceTypeName;
+  switch (status.type) {
     case 'oil_change': return 'Oil Change';
     case 'brake_pads': return 'Brake Pads';
     case 'battery': return 'Battery';
     case 'general_service': return 'General Service';
-    default: return type;
+    default: return status.type;
   }
 }
 
-function typeIcon(type: MaintenanceStatus['type']): React.ComponentProps<typeof MaterialIcons>['name'] {
-  switch (type) {
+function typeIcon(status: MaintenanceStatus): React.ComponentProps<typeof MaterialIcons>['name'] {
+  // Use icon from backend if available
+  if (status.serviceTypeIcon) return status.serviceTypeIcon as React.ComponentProps<typeof MaterialIcons>['name'];
+  // Auto-detect from name
+  const name = status.serviceTypeName?.toLowerCase() ?? '';
+  if (name.includes('oil')) return 'opacity';
+  if (name.includes('brake')) return 'build';
+  if (name.includes('battery')) return 'battery-charging-full';
+  if (name.includes('cvt') || name.includes('transmission')) return 'settings';
+  if (name.includes('air') || name.includes('filter')) return 'air';
+  if (name.includes('tire') || name.includes('tyre')) return 'tire-repair';
+  switch (status.type) {
     case 'oil_change': return 'opacity';
     case 'brake_pads': return 'build';
     case 'battery': return 'battery-charging-full';
@@ -128,7 +140,7 @@ export default function MaintenanceProgressRow({ status, index = 0 }: Props) {
             }}
           >
             <MaterialIcons 
-              name={typeIcon(status.type)} 
+              name={typeIcon(status)} 
               size={20} 
               color={isOverdue ? overdue : t.text} 
             />
@@ -141,7 +153,7 @@ export default function MaintenanceProgressRow({ status, index = 0 }: Props) {
               letterSpacing: -0.3,
               fontSize: 15,
             }}>
-              {typeLabel(status.type)}
+              {typeLabel(status)}
             </Text>
             <Text style={{ 
               color: t.textMuted, 

@@ -108,41 +108,41 @@ export default function VehiclesScreen() {
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={<View style={{ height: 0 }} />}
           ListFooterComponent={
-            <View style={{ paddingHorizontal: 20, marginTop: 4 }}>
+            <View style={{ marginTop: 8, marginBottom: 8, paddingHorizontal: 20 }}>
               <Pressable
                 onPress={() => router.push('/modals/add-vehicle')}
                 style={({ pressed }) => ({
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: 56,
-                  borderRadius: borderRadius.card,
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-                  borderWidth: 1,
-                  borderColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)',
-                  gap: 10,
-                  opacity: pressed ? 0.7 : 1,
+                  opacity: pressed ? 0.6 : 1,
                   transform: [{ scale: pressed ? 0.99 : 1 }],
                 })}
               >
                 <View style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 8,
-                  backgroundColor: t.brand,
+                  flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  paddingVertical: 16,
+                  borderRadius: borderRadius.card,
+                  borderWidth: 1.5,
+                  borderColor: isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.14)',
+                  borderStyle: 'dashed',
+                  gap: 8,
                 }}>
-                  <MaterialIcons name="add" size={18} color={isDark ? '#000000' : '#FFFFFF'} />
+                  <View style={{
+                    width: 28, height: 28, borderRadius: 8,
+                    backgroundColor: t.brand,
+                    alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <MaterialIcons name="add" size={18} color={isDark ? '#000000' : '#FFFFFF'} />
+                  </View>
+                  <Text style={{
+                    color: t.text,
+                    fontWeight: '700',
+                    fontSize: 14,
+                    letterSpacing: -0.2,
+                  }}>
+                    Add Vehicle
+                  </Text>
                 </View>
-                <Text style={{
-                  color: t.text,
-                  fontWeight: '700',
-                  fontSize: 14,
-                  letterSpacing: -0.2,
-                }}>
-                  Add Vehicle
-                </Text>
               </Pressable>
             </View>
           }
@@ -152,7 +152,7 @@ export default function VehiclesScreen() {
 
             let badgeText = 'SAFE';
             let badgeBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
-            let badgeFg = t.textMuted;
+            let badgeFg: string = t.textMuted;
             let badgeBorder = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)';
 
             if (worst === 'overdue') {

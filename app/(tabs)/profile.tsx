@@ -450,8 +450,56 @@ export default function ProfileScreen() {
           </View>
         </AnimatedListItem>
 
-        {/* Sign Out - Text only button */}
+        {/* Settings Section */}
         <AnimatedListItem index={4}>
+          <Text style={{ 
+            fontSize: 11, 
+            fontWeight: '700', 
+            marginBottom: 12, 
+            color: t.textSubtle, 
+            letterSpacing: 2,
+          }}>
+            SETTINGS
+          </Text>
+          <View style={{ marginBottom: 24 }}>
+            <Pressable
+              onPress={() => router.push('/settings/service-types')}
+              accessibilityRole="button"
+              style={({ pressed }) => ({ 
+                opacity: pressed ? 0.7 : 1,
+                transform: [{ scale: pressed ? 0.99 : 1 }],
+              })}
+            >
+              <GlassCard style={{ paddingHorizontal: 20, paddingVertical: 18 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                    <View style={{
+                      width: 38, height: 38, borderRadius: 11,
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                      alignItems: 'center', justifyContent: 'center',
+                      borderWidth: 1,
+                      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                    }}>
+                      <MaterialIcons name="build-circle" size={20} color={t.text} />
+                    </View>
+                    <View>
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: t.text, letterSpacing: -0.3, marginBottom: 2 }}>
+                        Service Types
+                      </Text>
+                      <Text style={{ fontSize: 12, color: t.textMuted, fontWeight: '500' }}>
+                        Manage maintenance catalogue
+                      </Text>
+                    </View>
+                  </View>
+                  <MaterialIcons name="chevron-right" size={20} color={t.textMuted} />
+                </View>
+              </GlassCard>
+            </Pressable>
+          </View>
+        </AnimatedListItem>
+
+        {/* Sign Out - Text only button */}
+        <AnimatedListItem index={5}>
           <View style={{ alignItems: 'center', marginTop: 8 }}>
             <Pressable
               onPress={onLogout}

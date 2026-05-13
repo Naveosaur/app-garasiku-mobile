@@ -61,6 +61,7 @@ export const useMaintenanceStore = create<MaintenanceStore>((set, get) => ({
       `/vehicles/${record.vehicleId}/maintenance`,
       {
         type: record.type,
+        serviceTypeId: (record as { serviceTypeId?: string }).serviceTypeId,
         serviceKM: record.serviceKM,
         date: record.date,
         notes: record.notes,
